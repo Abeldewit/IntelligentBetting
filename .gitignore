@@ -1,2 +1,9 @@
 
 .idea/misc.xml
+data/credits.csv
+data/keywords.csv
+data/links.csv
+data/links_small.csv
+data/movies_metadata.csv
+data/ratings.csv
+data/ratings_small.csv
