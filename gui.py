@@ -3,9 +3,10 @@ import tkinter
 
 def tester():
     print("Testing GUI")
-    t = tkinter.Tk()
-    t.title("Movie Tinder")
-    
+    tinder = tkinter.Tk()
+    tinder.title("Movie Tinder")
+    button
+
 
 
 if __name__ == '__main__':
