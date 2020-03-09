@@ -110,4 +110,3 @@ if __name__ == "__main__":
     app = flx.App(Website)
     app.launch('browser')
     flx.run()
-
