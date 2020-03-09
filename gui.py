@@ -23,9 +23,9 @@ class Example(flx.PyWidget):
     def init(self):
         with flx.VSplit():
             with flx.VSplit(flex=2):
-                self.image = ui.ImageWidget()
-                self.overview = ui.Label(flex=1, wrap=1)
-            with flx.GridLayout(ncolumns=4, flex=1):
+                self.image = flx.Widget(flex=2, style='background: black;')
+                self.overview = ui.Label(flex=1, wrap=True)
+            with flx.HBox(flex=1):
                 self.h_button = flx.Button(text='Horrible', flex=1)
                 self.m_button = flx.Button(text='Meh', flex=1)
                 self.g_button = flx.Button(text='Good', flex=1)
@@ -34,7 +34,13 @@ class Example(flx.PyWidget):
     @flx.reaction('h_button.pointer_click')
     def set_movie(self, *events):
         information = get_movie_info()
-        self.image.set_source(information['Poster'])
+        style = 'background: url(https://{}); ' \
+                'background-repeat: no-repeat; ' \
+                'background-position: center;' \
+                'background-color: black;' \
+                'background-size: contain' \
+                .format(information['Poster'][8:])
+        self.image.apply_style(style)
         self.overview.set_text(information['Plot'])
 
 
