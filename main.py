@@ -1,18 +1,22 @@
 import pandas as pd
 import numpy as np
 from ast import literal_eval
+from gui import add_movie
+from gui import UserInterface
 
 
 topX = 40
 
+
 def main():
 	df = pd.read_csv('dataClean/movieDataClean.csv')
+	action_df = pd.read_csv('dataClean/Action.csv')
+	for index, row in action_df.iterrows():
+		add_movie(row['imdb_id'])
+	user_interface = UserInterface()
 
 	# create all the topX tables for every genre
 	# topXTables(topX, df)
-
-
-
 	return 0
 
 # topX = the amount of movies we want in the genre specific database
@@ -63,5 +67,11 @@ def topXTables(topX, df):
 
 	return 0
 
+
+# This is where we get the title of the movie and the users score
+def pass_user_score(imdb, score):
+	print("Imdb id {} got scored {}".format(imdb, score))
+
+
 if __name__ == '__main__':
-    main()
+	main()

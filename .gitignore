@@ -8,3 +8,5 @@ data/movies_metadata.csv
 data/ratings.csv
 data/ratings_small.csv
 .idea/*
+__pycache__/gui.cpython-37.pyc
+__pycache__/main.cpython-37.pyc
