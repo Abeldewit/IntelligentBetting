@@ -7,7 +7,9 @@ topX = 40
 
 def main():
 	df = pd.read_csv('dataClean/movieDataClean.csv')
-	topXTables(topX, df)
+
+	# create all the topX tables for every genre
+	# topXTables(topX, df)
 
 
 
@@ -36,9 +38,11 @@ def createTable(genre, indexOfBest, df, topX):
 	# flip it to get the correct dimensions
 	dfTopMovies = dfTopMovies.transpose()
 
+	# create csv file for the top movies
+	dfName = 'dataClean/' + genre + '.csv'
+	dfTopMovies.to_csv(dfName, sep=',', encoding='utf-8', index = False)
 
-
-	return topMoviesIndex
+	return 0
 
 def topXTables(topX, df):
 	genres = dict()
@@ -56,9 +60,6 @@ def topXTables(topX, df):
 
 	for key in genres:
 		genreTop = createTable(key, indexOfBest, df, topX)
-		print(genreTop)
-
-
 
 	return 0
 
