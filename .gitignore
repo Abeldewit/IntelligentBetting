@@ -7,6 +7,7 @@ data/links_small.csv
 data/movies_metadata.csv
 data/ratings.csv
 data/ratings_small.csv
-.idea/*
+.idea/
 __pycache__/gui.cpython-37.pyc
 __pycache__/main.cpython-37.pyc
+.idea/IntelligentBetting.iml

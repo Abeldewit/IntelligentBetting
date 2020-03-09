@@ -3,7 +3,6 @@ import pandas as pd
 import urllib3
 import random
 from flexx import flx, ui
-from main import pass_user_score
 
 
 REQUEST = 'http://www.omdbapi.com/?apikey=2b5ae7ec&'
@@ -27,11 +26,11 @@ class Website(flx.PyWidget):
                 with self.overview_w:
                     self.overview = ui.Label(wrap=True)
             with flx.HBox(flex=1):
-                self.h_button = flx.Button(text='Horrible', flex=1)
+                # self.h_button = flx.Button(text='Horrible', flex=1)
                 self.m_button = flx.Button(text='Meh', flex=1)
                 self.n_button = flx.Button(text='Not\nSeen', flex=1)
                 self.g_button = flx.Button(text='Good', flex=1)
-                self.a_button = flx.Button(text='Amazing', flex=1)
+                # self.a_button = flx.Button(text='Amazing', flex=1)
         self.set_movie()
 
     # Here we get the new information about the movie and display it on the webpage #
@@ -52,10 +51,10 @@ class Website(flx.PyWidget):
         self.overview.set_text(information['Plot'])
 
     # These functions will process the user's reaction and display the next movie in line
-    @flx.reaction('h_button.pointer_down')
-    def click_horrible(self, *events):
-        score_movie(-2, self.imdb_index)
-        self.set_movie()
+    # @flx.reaction('h_button.pointer_down')
+    # def click_horrible(self, *events):
+    #     score_movie(-2, self.imdb_index)
+    #     self.set_movie()
 
     @flx.reaction('m_button.pointer_down')
     def click_meh(self, *events):
@@ -64,7 +63,7 @@ class Website(flx.PyWidget):
 
     @flx.reaction('n_button.pointer_down')
     def click_not_seen(self, *events):
-        score_movie(0, self.imdb_index)
+        # score_movie(0, self.imdb_index)
         self.set_movie()
 
     @flx.reaction('g_button.pointer_down')
@@ -72,10 +71,10 @@ class Website(flx.PyWidget):
         score_movie(1, self.imdb_index)
         self.set_movie()
 
-    @flx.reaction('a_button.pointer_down')
-    def click_amazing(self, *events):
-        score_movie(2, self.imdb_index)
-        self.set_movie()
+    # @flx.reaction('a_button.pointer_down')
+    # def click_amazing(self, *events):
+    #     score_movie(2, self.imdb_index)
+    #     self.set_movie()
 
 
 class UserInterface:
@@ -103,10 +102,5 @@ def add_movie(index):
 
 
 def score_movie(score, index):
+    from main import pass_user_score
     pass_user_score(score, index)
-
-
-if __name__ == "__main__":
-    app = flx.App(Website)
-    app.launch('browser')
-    flx.run()
