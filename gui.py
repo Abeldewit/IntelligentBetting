@@ -4,7 +4,7 @@ import random
 import pandas as pd
 
 REQUEST = 'http://www.omdbapi.com/?apikey=2b5ae7ec&'
-DATA = pd.read_csv('dataClean/movieDataClean.csv')
+DATA = pd.read_csv('data/movieData.csv')
 
 
 def get_movie_info():
