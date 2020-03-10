@@ -7,13 +7,11 @@ import random
 
 # constant which determines the amount of movies in a genre's top
 topX = 40
+df = pd.read_csv('data/movieData.csv')
+df['user_score'] = 0
 
 
 def main():
-	df = pd.read_csv('data/movieData.csv')
-	action_df = pd.read_csv('data/topMovies/Action.csv')
-
-
 	# create all the topX tables for every genre
 	# topXTables(topX, df)
 	# createTop100(df)
@@ -24,9 +22,9 @@ def main():
 
 	begin()
 	user_interface = UserInterface()
-	# exit()
 
 	return 0
+
 
 def begin():
 	count = 0
@@ -71,6 +69,7 @@ def createTable(genre, indexOfBest, df, topX):
 
 	return 0
 
+
 def topXTables(topX, df):
 	genres = dict()
 
@@ -109,6 +108,16 @@ def createTop100(df):
 
 	dfTop.to_csv('data/topMovies/top100.csv', sep=',', encoding='utf-8', index=False)
 	return 0
+
+# This is where we get the title of the movie and the users score
+# def pass_user_score(score, imdb):
+# 	print("Imdb id {} got scored {}".format(imdb, score))
+#
+# 	# solve this problem
+# 	# df.loc[df['imdb_id'] == imdb]['user_score'] = score
+# 	print(df.loc[df['imdb_id'] == imdb])
+#
+# 	return 0
 
 if __name__ == '__main__':
 	main()
