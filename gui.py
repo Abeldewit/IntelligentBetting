@@ -3,6 +3,8 @@ import pandas as pd
 import urllib3
 import random
 from flexx import flx, ui
+# from main import pass_user_score
+
 
 
 REQUEST = 'http://www.omdbapi.com/?apikey=2b5ae7ec&'
@@ -104,3 +106,12 @@ def add_movie(index):
 def score_movie(score, index):
     from main import pass_user_score
     pass_user_score(score, index)
+    return 0 #pass_user_score(score, index)
+
+
+if __name__ == "__main__":
+    app = flx.App(Website)
+    app.launch('browser')
+    flx.run()
+
+

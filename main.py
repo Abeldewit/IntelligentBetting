@@ -31,8 +31,31 @@ def main():
 
 	# create all the topX tables for every genre
 	# topXTables(topX, df)
+	# createTop100(df)
+
+
+	# for index, row in action_df.iterrows():
+	# 	add_movie(row['imdb_id'])
+
+	begin()
+	user_interface = UserInterface()
+
 	return 0
 
+
+def begin():
+	count = 0
+	df = pd.read_csv('data/topMovies/top100.csv')
+
+	while count < 10:
+		add_movie(df.iloc[random.randint(0, len(df))]['imdb_id'])
+		count += 1
+
+	return 0
+
+# This is where we get the title of the movie and the users score
+def pass_user_score(imdb, score):
+	print("Imdb id {} got scored {}".format(imdb, score))
 
 # topX = the amount of movies we want in the genre specific database
 def createTable(genre, indexOfBest, df, topX):
@@ -83,14 +106,37 @@ def topXTables(topX, df):
 
 	return 0
 
+def createTop100(df):
+	dfTopInd = []
 
-# This is where we get the title of the movie and the users score
-def pass_user_score(score, imdb):
-	print("Imdb id {} got scored {}".format(imdb, score))
+	for index in df.weightedRating.sort_values(ascending=False).head(100).index:
+		dfTopInd.append(index)
+
+	dfTop = pd.DataFrame(df.iloc[dfTopInd[0]])
+
+	# wrong dimensions
+	for index in dfTopInd[1:]:
+		tempDf = pd.DataFrame(df.iloc[index])
+		dfTop = pd.concat([dfTop, tempDf], axis=1)
+
+	# flip it to get the correct dimensions
+	dfTop = dfTop.transpose()
 
 	df.loc[df['imdb_id'] == imdb, 'user_score'] = score
 
 
+	dfTop.to_csv('data/topMovies/top100.csv', sep=',', encoding='utf-8', index=False)
+	return 0
+
+# This is where we get the title of the movie and the users score
+# def pass_user_score(score, imdb):
+# 	print("Imdb id {} got scored {}".format(imdb, score))
+#
+# 	# solve this problem
+# 	# df.loc[df['imdb_id'] == imdb]['user_score'] = score
+# 	print(df.loc[df['imdb_id'] == imdb])
+#
+# 	return 0
 
 if __name__ == '__main__':
 	main()
