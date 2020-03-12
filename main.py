@@ -22,7 +22,7 @@ def main():
 		for index in range(5):
 			tmp_movie = tmp_df.iloc[index]
 			cor_in_df = df.loc[df['id'] == tmp_movie['id']]
-
+			print(cor_in_df.user_score)
 			if int(cor_in_df.user_score) == 0:
 				add_movie(tmp_movie.imdb_id)
 			else:
@@ -52,10 +52,6 @@ def begin():
 		count += 1
 
 	return 0
-
-# This is where we get the title of the movie and the users score
-def pass_user_score(imdb, score):
-	print("Imdb id {} got scored {}".format(imdb, score))
 
 # topX = the amount of movies we want in the genre specific database
 def createTable(genre, indexOfBest, df, topX):
@@ -129,14 +125,14 @@ def createTop100(df):
 	return 0
 
 # This is where we get the title of the movie and the users score
-# def pass_user_score(score, imdb):
-# 	print("Imdb id {} got scored {}".format(imdb, score))
-#
-# 	# solve this problem
-# 	# df.loc[df['imdb_id'] == imdb]['user_score'] = score
-# 	print(df.loc[df['imdb_id'] == imdb])
-#
-# 	return 0
+def pass_user_score(score, imdb):
+	print("Imdb id {} got scored {}".format(imdb, score))
+
+	# solve this problem
+	# df.loc[df['imdb_id'] == imdb]['user_score'] = score
+	print(df.loc[df['imdb_id'] == imdb])
+
+	return 0
 
 if __name__ == '__main__':
 	main()
