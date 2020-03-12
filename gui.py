@@ -96,7 +96,7 @@ def get_movie_info():
         r.release_conn()
         return movie_info, imdb_i
     else:
-        return 0
+        exit(1)
 
 
 def add_movie(index):
