@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from ast import literal_eval
-from gui import add_movie
 from gui import UserInterface
 import random
 import csv
@@ -12,27 +11,25 @@ topX = 40
 df = pd.read_csv('data/movieData.csv')
 df['user_score'] = 0
 score_writer = csv.writer(open('data/user/scored.csv', 'w'))
+UI = UserInterface()
 
 
 def main():
 	begin()
-	UserInterface()
+	UI.run()
+	
+	return 0
 
 
 def begin():
-	top_genre_list = os.listdir('data/topMovies/')
-	# Pick a random genre
-	random_genre = random.randint(0, len(top_genre_list))
-	genre = top_genre_list[random_genre]
-	tmp_df = pd.read_csv('data/topMovies/'+genre)
-	for index in range(5):
-		tmp_movie = tmp_df.iloc[index]
-		add_movie(tmp_movie.imdb_id)
+	# get the top genres directly from the top 100
+	tmp_df = pd.read_csv('data/topMovies/top100.csv')
 
-	# count = 0
-	# while count < 10:
-	# 	add_movie(df.iloc[random.randint(0, len(df))]['imdb_id'])
-	# 	count += 1
+	for index in range(5):
+		movieIndex = random.randint(0,100)
+		tmp_movie = tmp_df.iloc[movieIndex]
+		UI.add_movie(tmp_movie.imdb_id)
+
 	return 0
 
 
@@ -45,12 +42,16 @@ def choose_new():
 
 	# Pick a random movie
 	tmp_movie = df.loc[df['imdb_id'] == tmp_df.loc[random.randint(0, tmp_df.shape[0])]['imdb_id']]
+	# print(tmp_movie['user_score'])
 
 	if int(tmp_movie['user_score']) == 0:
-		add_movie(tmp_movie.imdb_id)
+		UI.add_movie(tmp_movie.imdb_id.values[0])
+
 	else:
 		choose_new()
 
+
+	print(UI.get_movieList())
 
 # topX = the amount of movies we want in the genre specific database
 def createTable(genre, indexOfBest, df, topX):
@@ -124,14 +125,19 @@ def createTop100(df):
 
 # This is where we get the title of the movie and the users score
 def pass_user_score(score, imdb):
+	if score == 0:
+		choose_new()
+
 	# We set the score in our dataframe
-	df.loc[df['imdb_id'] == imdb, 'user_score'] = score
+	else:
+		df.loc[df['imdb_id'] == imdb, 'user_score'] = score
 
-	# And here we write the scored movie to a csv file
-	row = df.loc[df['imdb_id'] == imdb].iloc[0]
-	score_writer.writerow([row['imdb_id'], row['user_score']])
+		# And here we write the scored movie to a csv file
+		row = df.loc[df['imdb_id'] == imdb].iloc[0]
+		score_writer.writerow([row['imdb_id'], row['user_score']])
 
-	choose_new()
+		choose_new()
+
 	return 0
 
 

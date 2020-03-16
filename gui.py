@@ -38,7 +38,7 @@ class Website(flx.PyWidget):
     # Here we get the new information about the movie and display it on the webpage #
     @flx.action
     def set_movie(self, *events):
-        information, index = get_movie_info()
+        information, index = UserInterface.get_movie_info(self)
         self._mutate_imdb_index(index)
         style = 'background: url(https://{}); ' \
                 'background-repeat: no-repeat; ' \
@@ -60,17 +60,17 @@ class Website(flx.PyWidget):
 
     @flx.reaction('m_button.pointer_down')
     def click_meh(self, *events):
-        score_movie(-1, self.imdb_index)
+        UserInterface.score_movie(self, -1, self.imdb_index)
         self.set_movie()
 
     @flx.reaction('n_button.pointer_down')
     def click_not_seen(self, *events):
-        # score_movie(0, self.imdb_index)
+        UserInterface.score_movie(self, 0, self.imdb_index)
         self.set_movie()
 
     @flx.reaction('g_button.pointer_down')
     def click_good(self, *events):
-        score_movie(1, self.imdb_index)
+        UserInterface.score_movie(self, 1, self.imdb_index)
         self.set_movie()
 
     # @flx.reaction('a_button.pointer_down')
@@ -82,31 +82,39 @@ class Website(flx.PyWidget):
 class UserInterface:
     def __init__(self):
         print("Created new UI")
+        # app = flx.App(Website)
+        # app.launch('browser')
+        # flx.run()
+
+
+    def get_movie_info(self):
+        if len(MOVIES_INDEX) > 1:
+            imdb_i = MOVIES_INDEX.pop(0)
+            http = urllib3.PoolManager()
+            r = http.request('GET', REQUEST + 'i=' + imdb_i)
+            movie_info = json.loads(r.data.decode('utf8'))
+            r.release_conn()
+            return movie_info, imdb_i
+        else:
+            exit(1)
+
+
+    def add_movie(self, index):
+        MOVIES_INDEX.append(index)
+
+    def run(self):
         app = flx.App(Website)
         app.launch('browser')
         flx.run()
 
-
-def get_movie_info():
-    if len(MOVIES_INDEX) > 1:
-        imdb_i = MOVIES_INDEX.pop(0)
-        http = urllib3.PoolManager()
-        r = http.request('GET', REQUEST + 'i=' + imdb_i)
-        movie_info = json.loads(r.data.decode('utf8'))
-        r.release_conn()
-        return movie_info, imdb_i
-    else:
-        exit(1)
+    def get_movieList(self):
+        return MOVIES_INDEX
 
 
-def add_movie(index):
-    MOVIES_INDEX.append(index)
-
-
-def score_movie(score, index):
-    from main import pass_user_score
-    pass_user_score(score, index)
-    return 0 #pass_user_score(score, index)
+    def score_movie(self, score, index):
+        from main import pass_user_score
+        pass_user_score(score, index)
+        return 0 #pass_user_score(score, index)
 
 
 if __name__ == "__main__":
