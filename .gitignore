@@ -1,4 +1,4 @@
-
+venv
 .idea/misc.xml
 data/credits.csv
 data/keywords.csv
@@ -8,8 +8,5 @@ data/movies_metadata.csv
 data/ratings.csv
 data/ratings_small.csv
 .idea/
-__pycache__/gui.cpython-37.pyc
-__pycache__/main.cpython-37.pyc
-.idea/IntelligentBetting.iml
-.idea/IntelligentBetting.iml
+__pycache__
 .idea/misc.xml
