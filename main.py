@@ -18,6 +18,10 @@ score_writer = csv.writer(open('data/user/scored.csv', 'a'))
 UI = UserInterface()
 scoredArr = []  # array where all the imdb ids and scores are handled.
 
+learner = ActiveLearner(
+    estimator=RandomForestClassifier(),
+)
+
 
 def main():
     begin()
@@ -47,16 +51,22 @@ def choose_new():
 
     # Pick a random movie
     tmp_movie = df.loc[df['imdb_id'] == tmp_df.loc[random.randint(0, tmp_df.shape[0])]['imdb_id']]
-    # print(tmp_movie['user_score'])
 
-    if len(df[df['user_score'] != -2]) > 10:
-        predictor()
+    imdb_id_movietoadd = -1
 
-    if int(tmp_movie['user_score']) == -2:
-        UI.add_movie(tmp_movie.imdb_id.values[0])
-
-    else:
+    if int(tmp_movie['user_score']) != -2:
+        print('movie already rated')
         choose_new()
+    elif len(df[df['user_score'] != -2]) > 3:
+        print('using predictor to pick movies')
+        imdb_id_movietoadd = predictor()
+    elif int(tmp_movie['user_score']) == -2:
+        print('picking random movie')
+        imdb_id_movietoadd = tmp_movie.imdb_id.values[0]
+
+    print(f'adding movie {imdb_id_movietoadd}')
+    UI.add_movie(imdb_id_movietoadd)
+    # from UI pass_user_score() is called which calls choose_new() again after UI.add_movie()
 
 
 # print(UI.get_movieList())
@@ -141,48 +151,43 @@ def pass_user_score(score, imdb):
     score_writer.writerow([row['imdb_id'], row['user_score']])
     scoredArr.append((row['imdb_id'], row['user_score']))
 
-    if len(scoredArr) < 20:
-        choose_new()
-
-    else:
-        print("classification here")
-        predictor()
-
-    return 0
+    curr_inst = np.array(df[df['imdb_id'] == imdb].select_dtypes(exclude=['object']).iloc[:, :-1])
+    learner.teach(curr_inst.reshape(1,-1), np.array(1).reshape(1,-1))
+    choose_new()
+    # #
+    # # if len(scoredArr) < 20:
+    # #
+    # #
+    # # else:
+    # #     print("classification here")
+    # #     predictor()
+    # #
+    # # return 0
 
 
 # TODO construct a predictor for the new suggestions based on a decision tree
 def predictor():
+    prediction = -1
 
-    prediction = []
-
-    non_rated = df[df['user_score'] == -2]
-    rated = df[df['user_score'] != -2]
-    non_rated = non_rated.select_dtypes(exclude=['object'])
-    rated = rated.select_dtypes(exclude=['object'])
+    # non_rated = df[df['user_score'] == -2].select_dtypes(exclude=['object'])
+    rated = df[df['user_score'] != -2].select_dtypes(exclude=['object'])
 
     X = np.array(rated.iloc[:, :-1].fillna(0))
     y = np.array(rated.iloc[:, -1])
 
-    X_non_rated = np.array(non_rated.iloc[:, :-1].fillna(0))
+    X_non_rated = np.array(df[df['user_score'] == -2].iloc[:, :-1])
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
 
-    explore_exploration_thresh = 0.5
-    if random.random() < explore_exploration_thresh:
+    explore_thresh = 1
+    if random.random() < explore_thresh:
         # initializing the learner
-        learner = ActiveLearner(
-            estimator=RandomForestClassifier(),
-            X_training=X, y_training=y
-        )
-
         # query for labels
         query_idx, query_sample = learner.query(X_non_rated)
-        # ...obtaining new labels from the Oracle...
-        #TODO actually get input from user
-        y_new = None
-        # supply label for queried instance
-        learner.teach(X_non_rated[query_idx], y_new)
+        # print(f'query_idx {query_idx}')
+        print(f'query_sample {query_sample}')
+        # TODO actually link query_idx to prediction id
+        prediction = query_idx
     else:
         #
         DTC = DecisionTreeClassifier()
@@ -198,8 +203,6 @@ def predictor():
         # make the classifier (random Forrest?, on what data do we predict.
         # add the movie predicted based on the imdb_id
         # UI.add_movie()
-
-
 
     return prediction
 
