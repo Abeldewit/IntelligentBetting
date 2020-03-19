@@ -147,6 +147,7 @@ def pass_user_score(score, imdb):
     else:
         print("classification here")
         predictor()
+        
 
     return 0
 
@@ -161,12 +162,10 @@ def predictor():
     X = np.array(rated.iloc[:, :-1])
     y = np.array(rated.iloc[:, -1])
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
-
     from sklearn.ensemble import RandomForestClassifier
     DTC = RandomForestClassifier(n_estimators=100)
-    DTC.fit(X_train, y_train)
-    score = DTC.score(X_test, y_test)
+    DTC.fit(X,y)
+
 
     #TODO make batches of random movies that have -2 as userscore, (batches of 1000)
     #we chose the one with the highest mean weightedrating
@@ -210,6 +209,9 @@ def predictor():
         choose_new()
 
     return 0
+
+def accuracyClassifier():
+
 
 if __name__ == '__main__':
     main()
