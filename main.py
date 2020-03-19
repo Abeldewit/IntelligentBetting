@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from ast import literal_eval
 from gui import UserInterface
+from sklearn.utils import shuffle
 from sklearn.tree import DecisionTreeClassifier
 from modAL.models import ActiveLearner
 from sklearn.ensemble import RandomForestClassifier
@@ -9,6 +10,27 @@ import random
 import csv
 import os
 from sklearn.model_selection import train_test_split
+
+
+class AccuracyMeasure:
+    def __init__(self):
+        self.number_bad = 0
+        self.number_good = 0
+        self.number_total = 0
+
+    def update(self, user_score):
+        if user_score != 0:
+            self.number_total += 1
+        if user_score == -1:
+            self.number_bad += 1
+        elif user_score == 1:
+            self.number_good += 1
+
+    def print_score(self):
+        if self.number_total != 0:
+            print("Accuracy: {}%".format((self.number_good / self.number_total) * 100))
+        else:
+            return 0
 
 # constant which determines the amount of movies in a genre's top
 topX = 40
@@ -21,6 +43,7 @@ scoredArr = []  # array where all the imdb ids and scores are handled.
 learner = ActiveLearner(
     estimator=RandomForestClassifier(),
 )
+AM = AccuracyMeasure()
 
 
 def main():
@@ -169,10 +192,14 @@ def pass_user_score(score, imdb):
 def predictor():
     prediction = -1
 
-    # non_rated = df[df['user_score'] == -2].select_dtypes(exclude=['object'])
-    rated = df[df['user_score'] != -2].select_dtypes(exclude=['object'])
+    non_rated = df[df['user_score'] == -2]
+    rated = df[df['user_score'] != -2]
+    rated = rated[rated['user_score'] != 0]
+    
+    # non_rated = non_rated.select_dtypes(exclude=['object'])
+    rated = rated.select_dtypes(exclude=['object'])
 
-    X = np.array(rated.iloc[:, :-1].fillna(0))
+    X = np.array(rated.iloc[:, :-1])
     y = np.array(rated.iloc[:, -1])
 
     X_non_rated = np.array(df[df['user_score'] == -2].iloc[:, :-1])
@@ -189,23 +216,52 @@ def predictor():
         # TODO actually link query_idx to prediction id
         prediction = query_idx
     else:
-        #
-        DTC = DecisionTreeClassifier()
-        DTC.fit(X_train, y_train)
-        score = DTC.score(X_test, y_test)
-        #
-        results = DTC.predict(X_test)
-        print(results)
-        print(y_test)
-        #
-        # print("score = ", score)
+        DTC = RandomForestClassifier(n_estimators=100)
+        DTC.fit(X,y)
 
-        # make the classifier (random Forrest?, on what data do we predict.
-        # add the movie predicted based on the imdb_id
-        # UI.add_movie()
+
+        #TODO make batches of random movies that have -2 as userscore, (batches of 1000)
+        #we chose the one with the highest mean weightedrating
+        non_rated_shuffle = shuffle(non_rated)
+        splitArrays = np.array_split(non_rated_shuffle, 43)
+        maxBatch = -1
+
+        count = 0
+        for dataFrame in splitArrays:
+
+            meanRating = dataFrame['weightedRating'].mean()
+
+            if meanRating > maxBatch:
+                maxBatch = meanRating
+                index = count
+                dfBatch = dataFrame
+
+            count += 1
+
+
+        print("maxBatch = ", meanRating, "index = " ,index)
+
+        results = DTC.predict(np.array(dfBatch.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
+        dfBatch.reset_index()
+
+        index_score_good = []
+        index_score_bad = []
+        for i in range(len(results)):
+            if results[i] != 1:
+                index_score_bad.append(dfBatch.iloc[i]['imdb_id'])
+            if results[i] == 1:
+                index_score_good.append(dfBatch.iloc[i]['imdb_id'])
+
+        print(len(index_score_good), " - ", len(index_score_bad))
+
+        if len(index_score_good) > 1:
+            next_choice = index_score_good[random.randint(0, len(index_score_good)-1)]
+            # print(next_choice)
+            UI.add_movie(next_choice)
+        else:
+            choose_new()
 
     return prediction
-
 
 if __name__ == '__main__':
     main()
