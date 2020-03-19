@@ -81,7 +81,7 @@ def choose_new():
     if int(tmp_movie['user_score']) != -2:
         print('movie already rated')
         choose_new()
-    elif len(df[df['user_score'] != -2]) > 3:
+    elif len(df[df['user_score'] != -2]) > 2:
         print('using predictor to pick movies')
         imdb_id_movietoadd = predictor()
     elif int(tmp_movie['user_score']) == -2:
@@ -179,8 +179,10 @@ def pass_user_score(score, imdb):
     learner.teach(curr_inst.reshape(1, -1), np.array(score).reshape(1, -1))
     choose_new()
 
+
 # TODO construct a predictor for the new suggestions based on a decision tree
 def predictor():
+    print('in predictor')
     prediction = -1
 
     non_rated = df[df['user_score'] == -2]
@@ -193,17 +195,15 @@ def predictor():
     X = np.array(rated.iloc[:, :-1])
     y = np.array(rated.iloc[:, -1])
 
-    X_non_rated = np.array(df[df['user_score'] == -2].iloc[:, :-1].fillna(0).select_dtypes(exclude=['object']))
+    X_non_rated = non_rated.iloc[:, :-1].fillna(0).select_dtypes(exclude=['object'])
 
     explore_thresh = 1
     if random.random() < explore_thresh:
         # initializing the learner
         # query for labels
-        query_idx, query_sample = learner.query(X_non_rated)
-        # print(f'query_idx {query_idx}')
-        print(f'query_sample {query_sample}')
-        # TODO actually link query_idx to prediction id
-        prediction = query_idx
+        query_idx, query_sample = learner.query(np.array(X_non_rated))
+        prediction = non_rated['imdb_id'].iloc[query_idx].values[0]
+
     else:
         DTC = RandomForestClassifier(n_estimators=100)
         DTC.fit(X, y)
@@ -246,9 +246,10 @@ def predictor():
             # print(next_choice)
             prediction = next_choice
         else:
-            tmp_movie = non_rated.loc[non_rated['imdb_id'] == non_rated.loc[random.randint(0, non_rated.shape[0])]['imdb_id']]
+            tmp_movie = non_rated.loc[
+                non_rated['imdb_id'] == non_rated.loc[random.randint(0, non_rated.shape[0])]['imdb_id']]
             prediction = tmp_movie.imdb_id.values[0]
-
+    print(f'final prediction {prediction}')
     return prediction
 
 
