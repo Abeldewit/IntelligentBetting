@@ -11,6 +11,27 @@ import csv
 import os
 from sklearn.model_selection import train_test_split
 
+
+class AccuracyMeasure:
+    def __init__(self):
+        self.number_bad = 0
+        self.number_good = 0
+        self.number_total = 0
+
+    def update(self, user_score):
+        if user_score != 0:
+            self.number_total += 1
+        if user_score == -1:
+            self.number_bad += 1
+        elif user_score == 1:
+            self.number_good += 1
+
+    def print_score(self):
+        if self.number_total != 0:
+            print("Accuracy: {}%".format((self.number_good / self.number_total) * 100))
+        else:
+            return 0
+
 # constant which determines the amount of movies in a genre's top
 topX = 40
 df = pd.read_csv('data/movieData_Dummie.csv')
@@ -18,7 +39,7 @@ df['user_score'] = -2
 score_writer = csv.writer(open('data/user/scored.csv', 'a'))
 UI = UserInterface()
 scoredArr = []  # array where all the imdb ids and scores are handled.
-
+AM = AccuracyMeasure()
 
 
 def main():
@@ -147,8 +168,9 @@ def pass_user_score(score, imdb):
     else:
         print("classification here")
         predictor()
-        
+        AM.update(score)
 
+    AM.print_score()
     return 0
 
 
@@ -156,8 +178,11 @@ def pass_user_score(score, imdb):
 def predictor():
     non_rated = df[df['user_score'] == -2]
     rated = df[df['user_score'] != -2]
+    rated = rated[rated['user_score'] != 0]
+    
     # non_rated = non_rated.select_dtypes(exclude=['object'])
     rated = rated.select_dtypes(exclude=['object'])
+
 
     X = np.array(rated.iloc[:, :-1])
     y = np.array(rated.iloc[:, -1])
@@ -209,8 +234,6 @@ def predictor():
         choose_new()
 
     return 0
-
-def accuracyClassifier():
 
 
 if __name__ == '__main__':
