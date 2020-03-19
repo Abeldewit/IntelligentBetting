@@ -3,7 +3,7 @@ import numpy as np
 from ast import literal_eval
 from gui import UserInterface
 from sklearn.tree import DecisionTreeClassifier
-from modAL.models import ActiveLearner
+#from modAL.models import ActiveLearner
 from sklearn.ensemble import RandomForestClassifier
 import random
 import csv
@@ -46,13 +46,13 @@ def choose_new():
     genre = top_genre_list[random_genre]
     tmp_df = pd.read_csv('data/topMovies/' + genre)
 
-	# Pick a random movie
-	random_movie = tmp_df.loc[random.randint(0, len(tmp_df)-1)]['imdb_id']
-	tmp_movie = df.loc[df['imdb_id'] == random_movie]
-	# print(tmp_movie['user_score'])
+    # Pick a random movie
+    random_movie = tmp_df.loc[random.randint(0, len(tmp_df)-1)]['imdb_id']
+    tmp_movie = df.loc[df['imdb_id'] == random_movie]
+    # print(tmp_movie['user_score'])
 
-	if int(tmp_movie['user_score']) == -2:
-		UI.add_movie(tmp_movie.imdb_id.values[0])
+    if int(tmp_movie['user_score']) == -2:
+        UI.add_movie(tmp_movie.imdb_id.values[0])
 
     else:
         choose_new()
@@ -152,86 +152,43 @@ def pass_user_score(score, imdb):
 
 # TODO construct a predictor for the new suggestions based on a decision tree
 def predictor():
-
-	non_rated = df[df['user_score'] == -2]
-	rated = df[df['user_score'] != -2]
-	# non_rated = non_rated.select_dtypes(exclude=['object'])
-	rated = rated.select_dtypes(exclude=['object'])
-
     non_rated = df[df['user_score'] == -2]
     rated = df[df['user_score'] != -2]
-    non_rated = non_rated.select_dtypes(exclude=['object'])
+    # non_rated = non_rated.select_dtypes(exclude=['object'])
     rated = rated.select_dtypes(exclude=['object'])
 
-	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
-
-	from sklearn.ensemble import RandomForestClassifier
-	DTC = RandomForestClassifier()
-	DTC.fit(X_train, y_train)
-	score = DTC.score(X_test, y_test)
-	#
-	results = DTC.predict(np.array(non_rated.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
-	non_rated.reset_index()
-
-	index_score_good = []
-	index_score_bad = []
-	for i in range(len(results)):
-		if results[i] != 1:
-			index_score_bad.append(non_rated.iloc[i]['imdb_id'])
-		if results[i] == 1:
-			index_score_good.append(non_rated.iloc[i]['imdb_id'])
-
-	print(len(index_score_good), " - ", len(index_score_bad))
-
-	if len(index_score_good) > 1:
-		next_choice = index_score_good[random.randint(0, len(index_score_good)-1)]
-		# print(next_choice)
-		UI.add_movie(next_choice)
-	else:
-		choose_new()
-
-	# print(y_test)
-	#
-	# print("score = ", score)
-
-    X_non_rated = np.array(non_rated.iloc[:, :-1].fillna(0))
+    X = np.array(rated.iloc[:, :-1])
+    y = np.array(rated.iloc[:, -1])
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
 
-    explore_exploration_thresh = 0.5
-    if random.random() < explore_exploration_thresh:
-        # initializing the learner
-        learner = ActiveLearner(
-            estimator=RandomForestClassifier(),
-            X_training=X, y_training=y
-        )
+    from sklearn.ensemble import RandomForestClassifier
+    DTC = RandomForestClassifier()
+    DTC.fit(X_train, y_train)
+    score = DTC.score(X_test, y_test)
+    #
+    results = DTC.predict(np.array(non_rated.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
+    non_rated.reset_index()
 
-        # query for labels
-        query_idx, query_sample = learner.query(X_non_rated)
-        # ...obtaining new labels from the Oracle...
-        #TODO actually get input from user
-        y_new = None
-        # supply label for queried instance
-        learner.teach(X_non_rated[query_idx], y_new)
+    index_score_good = []
+    index_score_bad = []
+    for i in range(len(results)):
+        if results[i] != 1:
+            index_score_bad.append(non_rated.iloc[i]['imdb_id'])
+        if results[i] == 1:
+            index_score_good.append(non_rated.iloc[i]['imdb_id'])
+
+    print(len(index_score_good), " - ", len(index_score_bad))
+
+    if len(index_score_good) > 1:
+        next_choice = index_score_good[random.randint(0, len(index_score_good)-1)]
+        # print(next_choice)
+        UI.add_movie(next_choice)
     else:
-        #
-        DTC = DecisionTreeClassifier()
-        DTC.fit(X_train, y_train)
-        score = DTC.score(X_test, y_test)
-        #
-        results = DTC.predict(X_test)
-        print(results)
-        print(y_test)
-        #
-        # print("score = ", score)
+        choose_new()
 
-        # make the classifier (random Forrest?, on what data do we predict.
-        # add the movie predicted based on the imdb_id
-        # UI.add_movie()
+    return 0
 
-
-
-    return prediction
 
 
 if __name__ == '__main__':
