@@ -17,6 +17,7 @@ UI = UserInterface()
 scoredArr = [] #array where all the imdb ids and scores are handled.
 
 
+
 def main():
 	begin()
 	UI.run()
@@ -44,11 +45,9 @@ def choose_new():
 	tmp_df = pd.read_csv('data/topMovies/' + genre)
 
 	# Pick a random movie
-	tmp_movie = df.loc[df['imdb_id'] == tmp_df.loc[random.randint(0, tmp_df.shape[0])]['imdb_id']]
+	random_movie = tmp_df.loc[random.randint(0, len(tmp_df)-1)]['imdb_id']
+	tmp_movie = df.loc[df['imdb_id'] == random_movie]
 	# print(tmp_movie['user_score'])
-
-	if len(df[df['user_score'] != -2]) > 10:
-		predictor()
 
 	if int(tmp_movie['user_score']) == -2:
 		UI.add_movie(tmp_movie.imdb_id.values[0])
@@ -157,21 +156,40 @@ def predictor():
 
 	non_rated = df[df['user_score'] == -2]
 	rated = df[df['user_score'] != -2]
-	non_rated = non_rated.select_dtypes(exclude=['object'])
+	# non_rated = non_rated.select_dtypes(exclude=['object'])
 	rated = rated.select_dtypes(exclude=['object'])
 
 	X = np.array(rated.iloc[:, :-1].fillna(0))
 	y = np.array(rated.iloc[:, -1])
 
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
-	#
-	DTC = DecisionTreeClassifier()
+
+	from sklearn.ensemble import RandomForestClassifier
+	DTC = RandomForestClassifier()
 	DTC.fit(X_train, y_train)
 	score = DTC.score(X_test, y_test)
 	#
-	results = DTC.predict(X_test)
-	print(results)
-	print(y_test)
+	results = DTC.predict(np.array(non_rated.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
+	non_rated.reset_index()
+
+	index_score_good = []
+	index_score_bad = []
+	for i in range(len(results)):
+		if results[i] != 1:
+			index_score_bad.append(non_rated.iloc[i]['imdb_id'])
+		if results[i] == 1:
+			index_score_good.append(non_rated.iloc[i]['imdb_id'])
+
+	print(len(index_score_good), " - ", len(index_score_bad))
+
+	if len(index_score_good) > 1:
+		next_choice = index_score_good[random.randint(0, len(index_score_good)-1)]
+		# print(next_choice)
+		UI.add_movie(next_choice)
+	else:
+		choose_new()
+
+	# print(y_test)
 	#
 	# print("score = ", score)
 
