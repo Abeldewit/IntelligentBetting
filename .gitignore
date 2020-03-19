@@ -11,11 +11,8 @@ data/ratings_small.csv
 __pycache__/gui.cpython-37.pyc
 __pycache__/main.cpython-37.pyc
 .idea/IntelligentBetting.iml
-.idea/IntelligentBetting.iml
 .idea/misc.xml
-
+data/user/scored.csv
 data/user/
-
 .ipynb_checkpoints/
-
 Untitled.ipynb
