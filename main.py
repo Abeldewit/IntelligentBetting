@@ -32,6 +32,7 @@ class AccuracyMeasure:
         else:
             return 0
 
+
 # constant which determines the amount of movies in a genre's top
 topX = 40
 df = pd.read_csv('data/movieData_Dummie.csv')
@@ -174,19 +175,9 @@ def pass_user_score(score, imdb):
     score_writer.writerow([row['imdb_id'], row['user_score']])
     scoredArr.append((row['imdb_id'], row['user_score']))
 
-    curr_inst = np.array(df[df['imdb_id'] == imdb].select_dtypes(exclude=['object']).iloc[:, :-1])
-    learner.teach(curr_inst.reshape(1,-1), np.array(1).reshape(1,-1))
+    curr_inst = np.array(df[df['imdb_id'] == imdb].select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0))
+    learner.teach(curr_inst.reshape(1, -1), np.array(score).reshape(1, -1))
     choose_new()
-    # #
-    # # if len(scoredArr) < 20:
-    # #
-    # #
-    # # else:
-    # #     print("classification here")
-    # #     predictor()
-    # #
-    # # return 0
-
 
 # TODO construct a predictor for the new suggestions based on a decision tree
 def predictor():
@@ -195,16 +186,14 @@ def predictor():
     non_rated = df[df['user_score'] == -2]
     rated = df[df['user_score'] != -2]
     rated = rated[rated['user_score'] != 0]
-    
+
     # non_rated = non_rated.select_dtypes(exclude=['object'])
     rated = rated.select_dtypes(exclude=['object'])
 
     X = np.array(rated.iloc[:, :-1])
     y = np.array(rated.iloc[:, -1])
 
-    X_non_rated = np.array(df[df['user_score'] == -2].iloc[:, :-1])
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
+    X_non_rated = np.array(df[df['user_score'] == -2].iloc[:, :-1].fillna(0).select_dtypes(exclude=['object']))
 
     explore_thresh = 1
     if random.random() < explore_thresh:
@@ -217,11 +206,10 @@ def predictor():
         prediction = query_idx
     else:
         DTC = RandomForestClassifier(n_estimators=100)
-        DTC.fit(X,y)
+        DTC.fit(X, y)
 
-
-        #TODO make batches of random movies that have -2 as userscore, (batches of 1000)
-        #we chose the one with the highest mean weightedrating
+        # TODO make batches of random movies that have -2 as userscore, (batches of 1000)
+        # we chose the one with the highest mean weightedrating
         non_rated_shuffle = shuffle(non_rated)
         splitArrays = np.array_split(non_rated_shuffle, 43)
         maxBatch = -1
@@ -238,8 +226,7 @@ def predictor():
 
             count += 1
 
-
-        print("maxBatch = ", meanRating, "index = " ,index)
+        print("maxBatch = ", meanRating, "index = ", index)
 
         results = DTC.predict(np.array(dfBatch.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
         dfBatch.reset_index()
@@ -255,13 +242,15 @@ def predictor():
         print(len(index_score_good), " - ", len(index_score_bad))
 
         if len(index_score_good) > 1:
-            next_choice = index_score_good[random.randint(0, len(index_score_good)-1)]
+            next_choice = index_score_good[random.randint(0, len(index_score_good) - 1)]
             # print(next_choice)
-            UI.add_movie(next_choice)
+            prediction = next_choice
         else:
-            choose_new()
+            tmp_movie = non_rated.loc[non_rated['imdb_id'] == non_rated.loc[random.randint(0, non_rated.shape[0])]['imdb_id']]
+            prediction = tmp_movie.imdb_id.values[0]
 
     return prediction
+
 
 if __name__ == '__main__':
     main()
