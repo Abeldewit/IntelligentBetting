@@ -163,10 +163,14 @@ def predictor():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
 
     from sklearn.ensemble import RandomForestClassifier
-    DTC = RandomForestClassifier()
+    DTC = RandomForestClassifier(n_estimators=100)
     DTC.fit(X_train, y_train)
     score = DTC.score(X_test, y_test)
-    #
+
+    #TODO make batches of random movies that have -2 as userscore, (batches of 1000)
+    #we chose the one with the highest mean weightedrating
+
+
     results = DTC.predict(np.array(non_rated.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
     non_rated.reset_index()
 
