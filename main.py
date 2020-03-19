@@ -10,6 +10,10 @@ import random
 import csv
 import os
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
+
+
 
 
 class AccuracyMeasure:
@@ -35,12 +39,12 @@ class AccuracyMeasure:
 # constant which determines the amount of movies in a genre's top
 topX = 40
 df = pd.read_csv('data/movieData_Dummie.csv')
+dfTitles = pd.read_csv('data/MovieData.csv')
 df['user_score'] = -2
 score_writer = csv.writer(open('data/user/scored.csv', 'a'))
 UI = UserInterface()
 scoredArr = []  # array where all the imdb ids and scores are handled.
 AM = AccuracyMeasure()
-
 
 def main():
     begin()
@@ -57,7 +61,7 @@ def begin():
         movieIndex = random.randint(0, 100)
         tmp_movie = tmp_df.iloc[movieIndex]
         UI.add_movie(tmp_movie.imdb_id)
-
+    print(get_recommendations('Toy Story'))
     return 0
 
 
@@ -234,6 +238,36 @@ def predictor():
         choose_new()
 
     return 0
+
+
+# from kaggle project on this database
+# https://www.kaggle.com/rounakbanik/movie-recommender-systems
+
+def cosSim():
+    global dfTitles
+    links_small = pd.read_csv('data/links_small.csv')
+    links_small = links_small[links_small['tmdbId'].notnull()]['tmdbId'].astype('int')
+    dfTitles['id'] = dfTitles['id'].astype('int')
+    dfTitles = dfTitles[dfTitles['id'].isin(links_small)]
+    dfTitles['titleOverview'] = dfTitles['Title'] + dfTitles['overview']
+    tf = TfidfVectorizer(analyzer='word', ngram_range=(1, 2), min_df=0, stop_words='english')
+    tfidf_matrix = tf.fit_transform(dfTitles['titleOverview'])
+    print(tfidf_matrix.shape)
+    return linear_kernel(tfidf_matrix, tfidf_matrix)
+
+cosine_sim = cosSim()
+
+def get_recommendations(title):
+    global cosine_sim
+    titles = dfTitles['Title']
+    indices = pd.Series(dfTitles.index, index=dfTitles['Title'])
+
+    idx = indices[title]
+    sim_scores = list(enumerate(cosine_sim[idx]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sim_scores[1:31]
+    movie_indices = [i[0] for i in sim_scores]
+    return titles.iloc[movie_indices]
 
 
 if __name__ == '__main__':
