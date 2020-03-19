@@ -2,7 +2,10 @@ import json
 import pandas as pd
 import urllib3
 import random
-from flexx import flx, ui
+from flexx import flx, ui, app
+
+sliderValue = 0
+
 # from main import pass_user_score
 
 
@@ -33,6 +36,15 @@ class Website(flx.PyWidget):
                 self.n_button = flx.Button(text='Not\nSeen', flex=1)
                 self.g_button = flx.Button(text='Good', flex=1)
                 # self.a_button = flx.Button(text='Amazing', flex=1)
+            with flx.HBox(flex=0):
+                self.slider = ui.Slider(text='Exploration/Exploitation', flex=3, min=0, max=1, step=0.01)
+                # self.label = ui.Label(flex=1)
+                # self.label = flx.Label(flex=1)
+
+            # class JS:
+            #     @react.connect('slider.value')
+            #     def _change_label(self, value):
+            #         self.label.text('x'.repeat(value))
         self.set_movie()
 
     # Here we get the new information about the movie and display it on the webpage #
@@ -72,6 +84,12 @@ class Website(flx.PyWidget):
     def click_good(self, *events):
         UserInterface.score_movie(self, 1, self.imdb_index)
         self.set_movie()
+
+    @flx.reaction('slider.user_value')
+    def slide(self, *events):
+        # self.label.set_text('{:.2f}'.format(self.slider1.value))
+        sliderValue = self.slider.value
+        # print(sliderValue)
 
     # @flx.reaction('a_button.pointer_down')
     # def click_amazing(self, *events):
