@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from ast import literal_eval
 from gui import UserInterface
+from sklearn.utils import shuffle
 from sklearn.tree import DecisionTreeClassifier
 #from modAL.models import ActiveLearner
 from sklearn.ensemble import RandomForestClassifier
@@ -169,18 +170,35 @@ def predictor():
 
     #TODO make batches of random movies that have -2 as userscore, (batches of 1000)
     #we chose the one with the highest mean weightedrating
+    non_rated_shuffle = shuffle(non_rated)
+    splitArrays = np.array_split(non_rated_shuffle, 43)
+    maxBatch = -1
+
+    count = 0
+    for dataFrame in splitArrays:
+
+        meanRating = dataFrame['weightedRating'].mean()
+
+        if meanRating > maxBatch:
+            maxBatch = meanRating
+            index = count
+            dfBatch = dataFrame
+
+        count += 1
 
 
-    results = DTC.predict(np.array(non_rated.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
-    non_rated.reset_index()
+    print("maxBatch = ", meanRating, "index = " ,index)
+
+    results = DTC.predict(np.array(dfBatch.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
+    dfBatch.reset_index()
 
     index_score_good = []
     index_score_bad = []
     for i in range(len(results)):
         if results[i] != 1:
-            index_score_bad.append(non_rated.iloc[i]['imdb_id'])
+            index_score_bad.append(dfBatch.iloc[i]['imdb_id'])
         if results[i] == 1:
-            index_score_good.append(non_rated.iloc[i]['imdb_id'])
+            index_score_good.append(dfBatch.iloc[i]['imdb_id'])
 
     print(len(index_score_good), " - ", len(index_score_bad))
 
@@ -192,8 +210,6 @@ def predictor():
         choose_new()
 
     return 0
-
-
 
 if __name__ == '__main__':
     main()
