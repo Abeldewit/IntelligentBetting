@@ -5,6 +5,7 @@ from gui import UserInterface
 from sklearn.utils import shuffle
 from sklearn.tree import DecisionTreeClassifier
 from modAL.models import ActiveLearner
+from modAL.uncertainty import uncertainty_sampling, entropy_sampling, margin_sampling
 from sklearn.ensemble import RandomForestClassifier
 import random
 import csv
@@ -12,8 +13,6 @@ import os
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
-
-
 
 
 class AccuracyMeasure:
@@ -48,8 +47,10 @@ scoredArr = []  # array where all the imdb ids and scores are handled.
 
 learner = ActiveLearner(
     estimator=RandomForestClassifier(),
+    query_strategy=entropy_sampling
 )
 AM = AccuracyMeasure()
+
 
 def main():
     begin()
@@ -66,7 +67,7 @@ def begin():
         movieIndex = random.randint(0, 100)
         tmp_movie = tmp_df.iloc[movieIndex]
         UI.add_movie(tmp_movie.imdb_id)
-    print(get_recommendations('Toy Story'))
+    # print(get_recommendations('Toy Story'))
     return 0
 
 
@@ -78,7 +79,7 @@ def choose_new():
     tmp_df = pd.read_csv('data/topMovies/' + genre)
 
     # Pick a random movie
-    tmp_movie = df.loc[df['imdb_id'] == tmp_df.loc[random.randint(0, len(tmp_df)-1)]['imdb_id']]
+    tmp_movie = df.loc[df['imdb_id'] == tmp_df.loc[random.randint(0, len(tmp_df) - 1)]['imdb_id']]
 
     imdb_id_movietoadd = -1
 
@@ -179,13 +180,12 @@ def pass_user_score(score, imdb):
     scoredArr.append((row['imdb_id'], row['user_score']))
 
     curr_inst = np.array(df[df['imdb_id'] == imdb].select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0))
-    learner.teach(curr_inst.reshape(1, -1), np.array(score).reshape(1, -1))
+    learner.teach(curr_inst.reshape(1, -1), np.array(score).reshape(1, -1)[0])
     choose_new()
 
 
 # TODO construct a predictor for the new suggestions based on a decision tree
 def predictor():
-    print('in predictor')
     prediction = -1
 
     non_rated = df[df['user_score'] == -2]
@@ -199,21 +199,19 @@ def predictor():
     y = np.array(rated.iloc[:, -1])
 
     X_non_rated = non_rated.iloc[:, :-1].fillna(0).select_dtypes(exclude=['object'])
-
-    explore_thresh = 1
+    from gui import sliderValue
+    explore_thresh = sliderValue
     if random.random() < explore_thresh:
-        # initializing the learner
-        # query for labels
+        print('exploring')
         query_idx, query_sample = learner.query(np.array(X_non_rated))
 
         tmp_id = non_rated['imdb_id'].iloc[query_idx].values[0]
-        #TODO hacky way to deal with delay when rating
-        print('checking score')
+        # TODO fix hacky way to deal with delay when rating
         df.loc[df['imdb_id'] == str(tmp_id), 'user_score'] = 0
-        print(df.loc[df['imdb_id'] == str(tmp_id), 'user_score'] )
+        print(df.loc[df['imdb_id'] == str(tmp_id), 'user_score'])
         prediction = tmp_id
-
     else:
+        print('exploiting')
         DTC = RandomForestClassifier(n_estimators=100)
         DTC.fit(X, y)
 
@@ -277,7 +275,8 @@ def cosSim():
     print(tfidf_matrix.shape)
     return linear_kernel(tfidf_matrix, tfidf_matrix)
 
-cosine_sim = cosSim()
+
+# cosine_sim = cosSim()
 
 def get_recommendations(title):
     global cosine_sim

@@ -9,14 +9,12 @@ sliderValue = 0
 # from main import pass_user_score
 
 
-
 REQUEST = 'http://www.omdbapi.com/?apikey=2b5ae7ec&'
 MOVIES_INDEX = []
 
 
 # This is some black magic fuckery you don't want to touch #
 class Website(flx.PyWidget):
-
     imdb_index = flx.AnyProp(0, settable=True)
 
     def init(self):
@@ -37,7 +35,7 @@ class Website(flx.PyWidget):
                 self.g_button = flx.Button(text='Good', flex=1)
                 # self.a_button = flx.Button(text='Amazing', flex=1)
             with flx.HBox(flex=0):
-                self.slider = ui.Slider(text='Exploration/Exploitation', flex=3, min=0, max=1, step=0.01)
+                self.slider = ui.Slider(text='Exploration/Exploitation', flex=3, min=0, max=1, step=0.01, value=0.5)
                 # self.label = ui.Label(flex=1)
                 # self.label = flx.Label(flex=1)
 
@@ -87,9 +85,9 @@ class Website(flx.PyWidget):
 
     @flx.reaction('slider.user_value')
     def slide(self, *events):
+        global sliderValue
         # self.label.set_text('{:.2f}'.format(self.slider1.value))
         sliderValue = self.slider.value
-        # print(sliderValue)
 
     # @flx.reaction('a_button.pointer_down')
     # def click_amazing(self, *events):
@@ -104,7 +102,6 @@ class UserInterface:
         # app.launch('browser')
         # flx.run()
 
-
     def get_movie_info(self):
         if len(MOVIES_INDEX) > 1:
             imdb_i = MOVIES_INDEX.pop(0)
@@ -115,7 +112,6 @@ class UserInterface:
             return movie_info, imdb_i
         else:
             exit(1)
-
 
     def add_movie(self, index):
         MOVIES_INDEX.append(index)
@@ -128,16 +124,13 @@ class UserInterface:
     def get_movieList(self):
         return MOVIES_INDEX
 
-
     def score_movie(self, score, index):
         from main import pass_user_score
         pass_user_score(score, index)
-        return 0 #pass_user_score(score, index)
+        return 0  # pass_user_score(score, index)
 
 
 if __name__ == "__main__":
     app = flx.App(Website)
     app.launch('browser')
     flx.run()
-
-
