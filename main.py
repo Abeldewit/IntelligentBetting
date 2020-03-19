@@ -5,11 +5,12 @@ from gui import UserInterface
 import random
 import csv
 import os
+from sklearn.model_selection import train_test_split
 
 # constant which determines the amount of movies in a genre's top
 topX = 40
 df = pd.read_csv('data/movieData.csv')
-df['user_score'] = 0
+df['user_score'] = -2
 score_writer = csv.writer(open('data/user/scored.csv', 'a'))
 UI = UserInterface()
 scoredArr = [] #array where all the imdb ids and scores are handled.
@@ -46,7 +47,7 @@ def choose_new():
 	tmp_movie = df.loc[df['imdb_id'] == tmp_df.loc[random.randint(0, tmp_df.shape[0])]['imdb_id']]
 	# print(tmp_movie['user_score'])
 
-	if int(tmp_movie['user_score']) == 0:
+	if int(tmp_movie['user_score']) == -2:
 		UI.add_movie(tmp_movie.imdb_id.values[0])
 
 	else:
@@ -137,6 +138,7 @@ def pass_user_score(score, imdb):
 	score_writer.writerow([row['imdb_id'], row['user_score']])
 	scoredArr.append((row['imdb_id'], row['user_score']))
 
+
 	if len(scoredArr) < 20:
 		choose_new()
 
@@ -152,7 +154,16 @@ def pass_user_score(score, imdb):
 def predictor():
 	prediction = []
 
-	
+	trainingData = df.loc[df['user_score'] != 0]
+
+	# maybe drop the weighted rating and the voterating while this may have a lot of influence?
+	x = trainingData[trainingData.columns.difference(['user_score'])]
+	y = trainingData['user_score']
+
+	X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.25)
+
+
+	# make the classifier (random Forrest?, on what data do we predict.
 
 	## add the movie predicted based on the imdb_id
 	# UI.add_movie()
