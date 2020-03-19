@@ -133,12 +133,10 @@ def pass_user_score(score, imdb):
 	if score != 0:
 		df.loc[df['imdb_id'] == imdb, 'user_score'] = score
 
-
 	# And here we write the scored movie to a csv file
 	row = df.loc[df['imdb_id'] == imdb].iloc[0]
 	score_writer.writerow([row['imdb_id'], row['user_score']])
 	scoredArr.append((row['imdb_id'], row['user_score']))
-
 
 	if len(scoredArr) < 20:
 		choose_new()
@@ -147,11 +145,10 @@ def pass_user_score(score, imdb):
 		print("classification here")
 		predictor()
 
-
-
 	return 0
 
-#TODO mconstruct a predictor for the new suggestions based on a decision tree
+
+# TODO construct a predictor for the new suggestions based on a decision tree
 def predictor():
 	prediction = []
 
@@ -192,8 +189,7 @@ def predictor():
 
 
 	# make the classifier (random Forrest?, on what data do we predict.
-
-	## add the movie predicted based on the imdb_id
+	# add the movie predicted based on the imdb_id
 	# UI.add_movie()
 
 	return prediction
