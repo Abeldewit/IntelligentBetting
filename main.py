@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from ast import literal_eval
 from gui import UserInterface
+from sklearn.tree import DecisionTreeClassifier
 import random
 import csv
 import os
@@ -154,13 +155,40 @@ def pass_user_score(score, imdb):
 def predictor():
 	prediction = []
 
-	trainingData = df.loc[df['user_score'] != 0]
+	trainingData = df.loc[(df['user_score'] != -2)]
+	trainingData = trainingData.loc[(trainingData['user_score'] != 0)]
+	dfPred = df.loc[(df['user_score'] == -2)]
+
+	# create dummies
+	dfX = trainingData[trainingData.columns.difference(['user_score'])]
+	nonNumer = dfX.select_dtypes(exclude=np.number).columns
+	numericCols = list(dfX.select_dtypes(include=np.number).columns)  # find the columns that are numeric
+	numericColsPred = list(dfPred.select_dtypes(include=np.number).columns)
+
+	dummy_vars_dfX = pd.get_dummies(dfX[list(dfX.select_dtypes(exclude=np.number).columns)])
+	dfX_Dummy = dfX[numericCols].join(dummy_vars_dfX)
+
+	dummy_vars_dfPred = pd.get_dummies(dfPred[list(dfPred.select_dtypes(exclude=np.number).columns)])
+	dfPred_Dummy = dfPred[numericColsPred].join(dummy_vars_dfPred)
 
 	# maybe drop the weighted rating and the voterating while this may have a lot of influence?
-	x = trainingData[trainingData.columns.difference(['user_score'])]
+	x = dfX_Dummy
 	y = trainingData['user_score']
 
+
 	X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.25)
+
+	DTC = DecisionTreeClassifier()
+	DTC.fit(X_train, y_train)
+	score = DTC.score(X_test, y_test)
+
+	results = DTC.predict(dfPred_Dummy[:50])
+	print(results)
+
+
+
+	print("score = ", score)
+
 
 
 	# make the classifier (random Forrest?, on what data do we predict.
