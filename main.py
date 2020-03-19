@@ -10,12 +10,11 @@ from sklearn.model_selection import train_test_split
 
 # constant which determines the amount of movies in a genre's top
 topX = 40
-df = pd.read_csv('data/movieData.csv')
+df = pd.read_csv('data/movieData_Dummie.csv')
 df['user_score'] = -2
 score_writer = csv.writer(open('data/user/scored.csv', 'a'))
 UI = UserInterface()
 scoredArr = [] #array where all the imdb ids and scores are handled.
-
 
 
 def main():
@@ -48,6 +47,9 @@ def choose_new():
 	tmp_movie = df.loc[df['imdb_id'] == tmp_df.loc[random.randint(0, tmp_df.shape[0])]['imdb_id']]
 	# print(tmp_movie['user_score'])
 
+	if len(df[df['user_score'] != -2]) > 10:
+		predictor()
+
 	if int(tmp_movie['user_score']) == -2:
 		UI.add_movie(tmp_movie.imdb_id.values[0])
 
@@ -55,11 +57,11 @@ def choose_new():
 		choose_new()
 
 
-	print(UI.get_movieList())
+	# print(UI.get_movieList())
 
 # topX = the amount of movies we want in the genre specific database
 def createTable(genre, indexOfBest, df, topX):
-	#TODO Goeie documentatie wat deze functie doet
+	# TODO Goeie documentatie wat deze functie doet
 	topMoviesIndex = []
 	count = 0
 
@@ -148,45 +150,30 @@ def pass_user_score(score, imdb):
 	return 0
 
 
+
 # TODO construct a predictor for the new suggestions based on a decision tree
 def predictor():
 	prediction = []
 
-	trainingData = df.loc[(df['user_score'] != -2)]
-	trainingData = trainingData.loc[(trainingData['user_score'] != 0)]
-	dfPred = df.loc[(df['user_score'] == -2)]
+	non_rated = df[df['user_score'] == -2]
+	rated = df[df['user_score'] != -2]
+	non_rated = non_rated.select_dtypes(exclude=['object'])
+	rated = rated.select_dtypes(exclude=['object'])
 
-	# create dummies
-	dfX = trainingData[trainingData.columns.difference(['user_score'])]
-	nonNumer = dfX.select_dtypes(exclude=np.number).columns
-	numericCols = list(dfX.select_dtypes(include=np.number).columns)  # find the columns that are numeric
-	numericColsPred = list(dfPred.select_dtypes(include=np.number).columns)
+	X = np.array(rated.iloc[:, :-1].fillna(0))
+	y = np.array(rated.iloc[:, -1])
 
-	dummy_vars_dfX = pd.get_dummies(dfX[list(dfX.select_dtypes(exclude=np.number).columns)])
-	dfX_Dummy = dfX[numericCols].join(dummy_vars_dfX)
-
-	dummy_vars_dfPred = pd.get_dummies(dfPred[list(dfPred.select_dtypes(exclude=np.number).columns)])
-	dfPred_Dummy = dfPred[numericColsPred].join(dummy_vars_dfPred)
-
-	# maybe drop the weighted rating and the voterating while this may have a lot of influence?
-	x = dfX_Dummy
-	y = trainingData['user_score']
-
-
-	X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.25)
-
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
+	#
 	DTC = DecisionTreeClassifier()
 	DTC.fit(X_train, y_train)
 	score = DTC.score(X_test, y_test)
-
-	results = DTC.predict(dfPred_Dummy[:50])
+	#
+	results = DTC.predict(X_test)
 	print(results)
-
-
-
-	print("score = ", score)
-
-
+	print(y_test)
+	#
+	# print("score = ", score)
 
 	# make the classifier (random Forrest?, on what data do we predict.
 	# add the movie predicted based on the imdb_id
