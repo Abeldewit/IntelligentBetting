@@ -14,8 +14,8 @@ __pycache__/main.cpython-37.pyc
 .idea/IntelligentBetting.iml
 .idea/misc.xml
 
-data/user/scored.csv
+.ipynb_checkpoints/
+
+data/user/
 
 Untitled.ipynb
-
-.ipynb_checkpoints/
