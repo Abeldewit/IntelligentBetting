@@ -74,14 +74,14 @@ def choose_new():
     tmp_df = pd.read_csv('data/topMovies/' + genre)
 
     # Pick a random movie
-    tmp_movie = df.loc[df['imdb_id'] == tmp_df.loc[random.randint(0, tmp_df.shape[0])]['imdb_id']]
+    tmp_movie = df.loc[df['imdb_id'] == tmp_df.loc[random.randint(0, len(tmp_df)-1)]['imdb_id']]
 
     imdb_id_movietoadd = -1
 
     if int(tmp_movie['user_score']) != -2:
         print('movie already rated')
         choose_new()
-    elif len(df[df['user_score'] != -2]) > 2:
+    elif len(df[df['user_score'] != -2]) > 5:
         print('using predictor to pick movies')
         imdb_id_movietoadd = predictor()
     elif int(tmp_movie['user_score']) == -2:
@@ -167,8 +167,7 @@ def createTop100(df):
 
 # This is where we get the title of the movie and the users score
 def pass_user_score(score, imdb):
-    if score != 0:
-        df.loc[df['imdb_id'] == imdb, 'user_score'] = score
+    df.loc[df['imdb_id'] == imdb, 'user_score'] = score
 
     # And here we write the scored movie to a csv file
     row = df.loc[df['imdb_id'] == imdb].iloc[0]
@@ -202,7 +201,13 @@ def predictor():
         # initializing the learner
         # query for labels
         query_idx, query_sample = learner.query(np.array(X_non_rated))
-        prediction = non_rated['imdb_id'].iloc[query_idx].values[0]
+
+        tmp_id = non_rated['imdb_id'].iloc[query_idx].values[0]
+        #TODO hacky way to deal with delay when rating
+        print('checking score')
+        df.loc[df['imdb_id'] == str(tmp_id), 'user_score'] = 0
+        print(df.loc[df['imdb_id'] == str(tmp_id), 'user_score'] )
+        prediction = tmp_id
 
     else:
         DTC = RandomForestClassifier(n_estimators=100)
