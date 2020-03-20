@@ -73,8 +73,8 @@ UI = UserInterface()
 scoredArr = []  # array where all the imdb ids and scores are handled.
 
 
-def custom_sampling(classifier, X_pool):
-    popularity_colidx = 3
+def custom_querying(classifier, X_pool):
+    popularity_colidx = 3  # third column in x pool has popularity [er ,pvoe
     popularity_median = np.median(X_pool[:, popularity_colidx])
     bool_arr = np.apply_along_axis(lambda row: row[popularity_colidx] > popularity_median, 1, X_pool)
     X_pool = X_pool[bool_arr]
@@ -90,7 +90,7 @@ def custom_sampling(classifier, X_pool):
 
 learner = ActiveLearner(
     estimator=RandomForestClassifier(),
-    query_strategy=custom_sampling
+    query_strategy=custom_querying
 )
 AM = AccuracyMeasure()
 CS = CosineSimilarity()
@@ -215,7 +215,7 @@ def createTop100(df):
 
 # This is where we get the title of the movie and the users score
 def pass_user_score(score, imdb):
-    exp.set_counters(score)
+    # exp.set_counters(score)
     df.loc[df['imdb_id'] == imdb, 'user_score'] = score
 
     # And here we write the scored movie to a csv file

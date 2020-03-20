@@ -18,3 +18,5 @@ data/user/
 Untitled.ipynb
 
 debug.log
+*.pyc
+*.png

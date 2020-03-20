@@ -4,12 +4,12 @@ import urllib3
 import random
 from flexx import flx, ui, app
 
-sliderValue = 0.3
+sliderValue = 1.0
 
 # from main import pass_user_score
 
 
-REQUEST = 'http://www.omdbapi.com/?apikey=2b5ae7ec&'
+REQUEST = 'http://www.omdbapi.com/?apikey=5e77abca&'
 MOVIES_INDEX = []
 
 
@@ -111,7 +111,19 @@ class UserInterface:
             imdb_i = MOVIES_INDEX.pop(0)
             http = urllib3.PoolManager()
             try:
-                r = http.request('GET', REQUEST + 'i=' + str(imdb_i))
+                r = http.request('GET', REQUEST + 'i=' + str(imdb_i), headers={
+                    'Host': 'www.omdbapi.com',
+                    'Connection': 'keep-alive',
+                    'Cache-Control': 'max-age=0',
+                    'DNT': '1',
+                    'Upgrade-Insecure-Requests': '1',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                    'Accept-Encoding': 'gzip, deflate',
+                    'Accept-Language': 'en-US,en;q=0.9,nl;q=0.8',
+                    # 'Cookie': '__cfduid=dfeaeb838b25354cb5058ebd4bcb85aae1584736422',
+                })
+
                 movie_info = json.loads(r.data.decode('utf8'))
                 r.release_conn()
             except:
