@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 
+is_calculatecossim = True
 
 class AccuracyMeasure:
     def __init__(self):
@@ -67,7 +68,8 @@ def begin():
         movieIndex = random.randint(0, 100)
         tmp_movie = tmp_df.iloc[movieIndex]
         UI.add_movie(tmp_movie.imdb_id)
-    # print(get_recommendations('Toy Story'))
+    if is_calculatecossim:
+        print(get_recommendations('Toy Story'))
     return 0
 
 
@@ -266,6 +268,7 @@ def predictor():
 def cosSim():
     global dfTitles
     links_small = pd.read_csv('data/links_small.csv')
+
     links_small = links_small[links_small['tmdbId'].notnull()]['tmdbId'].astype('int')
     dfTitles['id'] = dfTitles['id'].astype('int')
     dfTitles = dfTitles[dfTitles['id'].isin(links_small)]
@@ -273,10 +276,11 @@ def cosSim():
     tf = TfidfVectorizer(analyzer='word', ngram_range=(1, 2), min_df=0, stop_words='english')
     tfidf_matrix = tf.fit_transform(dfTitles['titleOverview'])
     print(tfidf_matrix.shape)
+    # tfidf_matrix_32 = tfidf_matrix.astype(np.float32)
     return linear_kernel(tfidf_matrix, tfidf_matrix)
 
-
-# cosine_sim = cosSim()
+if is_calculatecossim:
+    cosine_sim = cosSim()
 
 def get_recommendations(title):
     global cosine_sim
