@@ -61,6 +61,7 @@ class CosineSimilarity:
     def getCos(self):
         return self.cos
 
+
 # constant which determines the amount of movies in a genre's top
 topX = 40
 df = pd.read_csv('data/movieData_Dummie.csv')
@@ -69,6 +70,7 @@ df['user_score'] = -2
 score_writer = csv.writer(open('data/user/scored.csv', 'a'))
 UI = UserInterface()
 scoredArr = []  # array where all the imdb ids and scores are handled.
+
 
 def custom_sampling(classifier, X_pool):
     popularity_colidx = 3
@@ -82,6 +84,7 @@ def custom_sampling(classifier, X_pool):
     uncertainty = 1 - np.max(classwise_uncertainty, axis=1)
     query_idx = multi_argmax(uncertainty, n_instances=1)
     return query_idx, X_pool[query_idx]
+
 
 learner = ActiveLearner(
     estimator=RandomForestClassifier(),
@@ -107,6 +110,7 @@ def begin():
         UI.add_movie(tmp_movie.imdb_id)
 
     return 0
+
 
 def choose_new():
     top_genre_list = os.listdir('data/topMovies/')
@@ -136,6 +140,7 @@ def choose_new():
     n_iteration += 1
     # from UI pass_user_score() is called which calls choose_new() again after UI.add_movie()
 
+
 # topX = the amount of movies we want in the genre specific database
 def createTable(genre, indexOfBest, df, topX):
     # TODO Goeie documentatie wat deze functie doet
@@ -164,6 +169,7 @@ def createTable(genre, indexOfBest, df, topX):
 
     return 0
 
+
 def topXTables(topX, df):
     # TODO Goeie documentatie wat deze functie doet
     genres = dict()
@@ -182,6 +188,7 @@ def topXTables(topX, df):
         print("done ", key)
 
     return 0
+
 
 def createTop100(df):
     # TODO Goeie documentatie wat deze functie doet
@@ -203,6 +210,7 @@ def createTop100(df):
     dfTop.to_csv('data/topMovies/top100.csv', sep=',', encoding='utf-8', index=False)
     return 0
 
+
 # This is where we get the title of the movie and the users score
 def pass_user_score(score, imdb):
     df.loc[df['imdb_id'] == imdb, 'user_score'] = score
@@ -217,6 +225,7 @@ def pass_user_score(score, imdb):
     choose_new()
     AM.update(score)
     AM.print_score()
+
 
 # TODO construct a predictor for the new suggestions based on a decision tree
 def predictor():
@@ -260,18 +269,16 @@ def predictor():
 
         movies = []
 
-
         ratedShuf = shuffle(rated)
 
         for index, row in ratedShuf.iterrows():
             if row['id'] in links_small and len(movies) < 1000:
                 print(row['Title'])
-                cosMov  = get_recommendations(row['Title'], cosine_sim)
+                cosMov = get_recommendations(row['Title'], cosine_sim)
 
                 for imdbID in cosMov.values:
                     if imdbID in non_rated['imdb_id'].values:
                         movies.append(imdbID)
-
 
         print(movies)
 
@@ -281,10 +288,10 @@ def predictor():
             # make sure to fill up the movies up to batches where 50% of the movies in the batch are chosen by the
             # cosine similarity function
             if len(movies) > 0:
-                threshold = len(movies)/0.5
-                splitVal = len(non_rated_shuffle)/(threshold - len(movies))
+                threshold = len(movies) / 0.5
+                splitVal = len(non_rated_shuffle) / (threshold - len(movies))
             else:
-                splitVal = len(non_rated_shuffle)/(100 - len(movies))
+                splitVal = len(non_rated_shuffle) / (100 - len(movies))
 
             print(splitVal)
             splitArrays = np.array_split(non_rated_shuffle, splitVal)
@@ -338,7 +345,6 @@ def predictor():
 
 # from kaggle project on this database
 # https://www.kaggle.com/rounakbanik/movie-recommender-systems
-
 
 
 def get_recommendations(title, cosine_sim):
