@@ -41,10 +41,30 @@ class AccuracyMeasure:
             return 0
 
 
+dfTitles = pd.read_csv('data/MovieData.csv')
+
+
+class CosineSimilarity:
+    def __init__(self):
+        global dfTitles
+        links_small = pd.read_csv('data/links_small.csv')
+
+        links_small = links_small[links_small['tmdbId'].notnull()]['tmdbId'].astype('int')
+        dfTitles['id'] = dfTitles['id'].astype('int')
+        dfTitles = dfTitles[dfTitles['id'].isin(links_small)]
+        dfTitles['titleOverview'] = dfTitles['Title'] + dfTitles['overview']
+        tf = TfidfVectorizer(analyzer='word', ngram_range=(1, 2), min_df=0, stop_words='english')
+        tfidf_matrix = tf.fit_transform(dfTitles['titleOverview'])
+
+        self.cos = linear_kernel(tfidf_matrix, tfidf_matrix)
+
+    def getCos(self):
+        return self.cos
+
 # constant which determines the amount of movies in a genre's top
 topX = 40
 df = pd.read_csv('data/movieData_Dummie.csv')
-dfTitles = pd.read_csv('data/MovieData.csv')
+
 df['user_score'] = -2
 score_writer = csv.writer(open('data/user/scored.csv', 'a'))
 UI = UserInterface()
@@ -63,19 +83,15 @@ def custom_sampling(classifier, X_pool):
     query_idx = multi_argmax(uncertainty, n_instances=1)
     return query_idx, X_pool[query_idx]
 
-
-cosine_sim = None
-
 learner = ActiveLearner(
     estimator=RandomForestClassifier(),
     query_strategy=custom_sampling
 )
 AM = AccuracyMeasure()
+CS = CosineSimilarity()
 
 
 def main():
-
-
     begin()
     UI.run()
     return 0
@@ -204,6 +220,7 @@ def pass_user_score(score, imdb):
 
 # TODO construct a predictor for the new suggestions based on a decision tree
 def predictor():
+    cosine_sim = CS.getCos()
     prediction = -1
 
     non_rated = df[df['user_score'] == -2]
@@ -242,7 +259,7 @@ def predictor():
         links_small = links_small[links_small['tmdbId'].notnull()]['tmdbId'].astype('int')
 
         movies = []
-        cosine_sim = cosSim()
+
 
         ratedShuf = shuffle(rated)
 
@@ -316,18 +333,6 @@ def predictor():
 # from kaggle project on this database
 # https://www.kaggle.com/rounakbanik/movie-recommender-systems
 
-def cosSim():
-    global dfTitles
-    links_small = pd.read_csv('data/links_small.csv')
-
-    links_small = links_small[links_small['tmdbId'].notnull()]['tmdbId'].astype('int')
-    dfTitles['id'] = dfTitles['id'].astype('int')
-    dfTitles = dfTitles[dfTitles['id'].isin(links_small)]
-    dfTitles['titleOverview'] = dfTitles['Title'] + dfTitles['overview']
-    tf = TfidfVectorizer(analyzer='word', ngram_range=(1, 2), min_df=0, stop_words='english')
-    tfidf_matrix = tf.fit_transform(dfTitles['titleOverview'])
-
-    return linear_kernel(tfidf_matrix, tfidf_matrix)
 
 
 def get_recommendations(title, cosine_sim):
