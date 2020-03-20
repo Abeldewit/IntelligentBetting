@@ -184,6 +184,8 @@ def pass_user_score(score, imdb):
     curr_inst = np.array(df[df['imdb_id'] == imdb].select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0))
     learner.teach(curr_inst.reshape(1, -1), np.array(score).reshape(1, -1)[0])
     choose_new()
+    AM.update(score)
+    AM.print_score()
 
 
 # TODO construct a predictor for the new suggestions based on a decision tree
