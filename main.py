@@ -283,12 +283,8 @@ def predictor():
         index_movies = []
         if len(movies) > 0:
             for i in movies:
-                index_movies.append(non_rated.index[non_rated['imdb_id'] == i])
-
-            dfBatch = pd.concat([dfBatch, non_rated.iloc[index_movies]], axis=1)
-
-
-
+                index_movies.append(non_rated.index[non_rated['imdb_id'] == i].values[0])
+            dfBatch = pd.concat([dfBatch, non_rated.iloc[index_movies]], axis=0)
 
         results = DTC.predict(np.array(dfBatch.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
         dfBatch.reset_index()
