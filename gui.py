@@ -4,12 +4,12 @@ import urllib3
 import random
 from flexx import flx, ui, app
 
-sliderValue = 0.3
+sliderValue = 1
 
 # from main import pass_user_score
 
 
-REQUEST = 'http://www.omdbapi.com/?apikey=2b5ae7ec&'
+REQUEST = 'http://www.omdbapi.com/?apikey=b5eee38&'
 MOVIES_INDEX = []
 
 
