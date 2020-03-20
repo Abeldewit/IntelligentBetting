@@ -15,7 +15,7 @@ import os
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
-import experiments as exp
+
 is_calculatecossim = True
 n_iteration = 0
 
@@ -213,7 +213,6 @@ def createTop100(df):
 
 # This is where we get the title of the movie and the users score
 def pass_user_score(score, imdb):
-    exp.set_counters(score)
     df.loc[df['imdb_id'] == imdb, 'user_score'] = score
 
     # And here we write the scored movie to a csv file
@@ -254,7 +253,6 @@ def predictor():
         tmp_id = non_rated['imdb_id'].iloc[query_idx].values[0]
         # TODO fix hacky way to deal with delay when rating
         df.loc[df['imdb_id'] == str(tmp_id), 'user_score'] = 0
-
         prediction = tmp_id
     else:
         print('exploiting')
