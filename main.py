@@ -246,19 +246,19 @@ def predictor():
             if row['id'] in links_small and len(movies) < 1000:
                 print(row['Title'])
                 cosMov  = get_recommendations(row['Title'], cosine_sim)
-                print(cosMov.values)
 
                 for imdbID in cosMov.values:
                     print("imdbid ", imdbID)
                     if imdbID in non_rated['imdb_id'].values:
                         movies.append(imdbID)
 
-                print(movies)
 
-        breakpoint()
+        print(movies)
+
         if len(movies) < 1000:
             non_rated_shuffle = shuffle(non_rated)
-            splitVal = 1000 - len(movies)/len(non_rated_shuffle)
+            splitVal = len(non_rated_shuffle)/1000 - len(movies)
+            print(splitVal)
             splitArrays = np.array_split(non_rated_shuffle, splitVal)
             maxBatch = -1
 
@@ -276,6 +276,10 @@ def predictor():
 
             print("maxBatch = ", meanRating, "index = ", index)
 
+        #TODO index of imdb id stored in movies. to do iloc and conjugate
+        dfBatch = dfBatch.conjugate()
+        len(dfBatch)
+        breakpoint()
         results = DTC.predict(np.array(dfBatch.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
         dfBatch.reset_index()
 
