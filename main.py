@@ -236,6 +236,7 @@ def predictor():
         tmp_id = non_rated['imdb_id'].iloc[query_idx].values[0]
         # TODO fix hacky way to deal with delay when rating
         df.loc[df['imdb_id'] == str(tmp_id), 'user_score'] = 0
+
         prediction = tmp_id
     else:
         print('exploiting')
