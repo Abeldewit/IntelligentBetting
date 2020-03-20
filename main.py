@@ -45,7 +45,7 @@ df['user_score'] = -2
 score_writer = csv.writer(open('data/user/scored.csv', 'a'))
 UI = UserInterface()
 scoredArr = []  # array where all the imdb ids and scores are handled.
-cosine_sim = None
+
 learner = ActiveLearner(
     estimator=RandomForestClassifier(),
     query_strategy=entropy_sampling
@@ -54,9 +54,8 @@ AM = AccuracyMeasure()
 
 
 def main():
-    if is_calculatecossim:
-        global cosine_sim
-        cosine_sim = cosSim()
+
+
     begin()
     UI.run()
 
@@ -71,10 +70,8 @@ def begin():
         movieIndex = random.randint(0, 100)
         tmp_movie = tmp_df.iloc[movieIndex]
         UI.add_movie(tmp_movie.imdb_id)
-    if is_calculatecossim:
-        print(get_recommendations('Toy Story'))
-    return 0
 
+    return 0
 
 def choose_new():
     top_genre_list = os.listdir('data/topMovies/')
@@ -101,9 +98,6 @@ def choose_new():
     print(f'adding movie {imdb_id_movietoadd}')
     UI.add_movie(imdb_id_movietoadd)
     # from UI pass_user_score() is called which calls choose_new() again after UI.add_movie()
-
-
-# print(UI.get_movieList())
 
 # topX = the amount of movies we want in the genre specific database
 def createTable(genre, indexOfBest, df, topX):
@@ -133,7 +127,6 @@ def createTable(genre, indexOfBest, df, topX):
 
     return 0
 
-
 def topXTables(topX, df):
     # TODO Goeie documentatie wat deze functie doet
     genres = dict()
@@ -152,7 +145,6 @@ def topXTables(topX, df):
         print("done ", key)
 
     return 0
-
 
 def createTop100(df):
     # TODO Goeie documentatie wat deze functie doet
@@ -174,7 +166,6 @@ def createTop100(df):
     dfTop.to_csv('data/topMovies/top100.csv', sep=',', encoding='utf-8', index=False)
     return 0
 
-
 # This is where we get the title of the movie and the users score
 def pass_user_score(score, imdb):
     df.loc[df['imdb_id'] == imdb, 'user_score'] = score
@@ -190,7 +181,6 @@ def pass_user_score(score, imdb):
     AM.update(score)
     AM.print_score()
 
-
 # TODO construct a predictor for the new suggestions based on a decision tree
 def predictor():
     prediction = -1
@@ -200,15 +190,15 @@ def predictor():
     rated = rated[rated['user_score'] != 0]
 
     # non_rated = non_rated.select_dtypes(exclude=['object'])
-    rated = rated.select_dtypes(exclude=['object'])
+    # rated = rated.select_dtypes(exclude=['object'])
 
-    X = np.array(rated.iloc[:, :-1])
+    X = np.array(rated.iloc[:, :-1].select_dtypes(exclude=['object']))
     y = np.array(rated.iloc[:, -1])
 
     X_non_rated = non_rated.iloc[:, :-1].fillna(0).select_dtypes(exclude=['object'])
     from gui import sliderValue
     explore_thresh = sliderValue
-    if random.random() < explore_thresh:
+    if random.random() > explore_thresh:
         print('exploring')
         query_idx, query_sample = learner.query(np.array(X_non_rated))
 
@@ -224,23 +214,46 @@ def predictor():
 
         # TODO make batches of random movies that have -2 as userscore, (batches of 1000)
         # we chose the one with the highest mean weightedrating
-        non_rated_shuffle = shuffle(non_rated)
-        splitArrays = np.array_split(non_rated_shuffle, 43)
-        maxBatch = -1
+        links_small = pd.read_csv('data/links_small.csv')
+        links_small = links_small[links_small['tmdbId'].notnull()]['tmdbId'].astype('int')
 
-        count = 0
-        for dataFrame in splitArrays:
+        movies = []
+        cosine_sim = cosSim()
 
-            meanRating = dataFrame['weightedRating'].mean()
+        ratedShuf = shuffle(rated)
+        for index, row in ratedShuf.iterrows():
+            if row['id'] in links_small and len(movies) < 1000:
+                print(row['Title'])
+                cosMov  = get_recommendations(row['Title'], cosine_sim)
+                print(cosMov.values)
 
-            if meanRating > maxBatch:
-                maxBatch = meanRating
-                index = count
-                dfBatch = dataFrame
+                for imdbID in cosMov.values:
+                    print("imdbid ", imdbID)
+                    if imdbID in non_rated['imdb_id'].values:
+                        print("jrjejejej")
 
-            count += 1
+                print(movies)
 
-        print("maxBatch = ", meanRating, "index = ", index)
+        breakpoint()
+        if len(movies) < 1000:
+            non_rated_shuffle = shuffle(non_rated)
+            splitVal = 1000 - len(movies)/len(non_rated_shuffle)
+            splitArrays = np.array_split(non_rated_shuffle, splitVal)
+            maxBatch = -1
+
+            count = 0
+            for dataFrame in splitArrays:
+
+                meanRating = dataFrame['weightedRating'].mean()
+
+                if meanRating > maxBatch:
+                    maxBatch = meanRating
+                    index = count
+                    dfBatch = dataFrame
+
+                count += 1
+
+            print("maxBatch = ", meanRating, "index = ", index)
 
         results = DTC.predict(np.array(dfBatch.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
         dfBatch.reset_index()
@@ -280,13 +293,14 @@ def cosSim():
     dfTitles['titleOverview'] = dfTitles['Title'] + dfTitles['overview']
     tf = TfidfVectorizer(analyzer='word', ngram_range=(1, 2), min_df=0, stop_words='english')
     tfidf_matrix = tf.fit_transform(dfTitles['titleOverview'])
-    print(tfidf_matrix.shape)
-    # tfidf_matrix_32 = tfidf_matrix.astype(np.float32)
+
     return linear_kernel(tfidf_matrix, tfidf_matrix)
 
-def get_recommendations(title):
-    global cosine_sim
-    titles = dfTitles['Title']
+def get_recommendations(title, cosine_sim):
+    global dfTitles
+
+    print(dfTitles.shape)
+    dfTitles = dfTitles.reset_index(drop=True)
     indices = pd.Series(dfTitles.index, index=dfTitles['Title'])
 
     idx = indices[title]
@@ -294,7 +308,8 @@ def get_recommendations(title):
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
     sim_scores = sim_scores[1:31]
     movie_indices = [i[0] for i in sim_scores]
-    return titles.iloc[movie_indices]
+
+    return dfTitles["imdb_id"].iloc[movie_indices]
 
 
 if __name__ == '__main__':
