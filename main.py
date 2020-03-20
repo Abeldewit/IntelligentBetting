@@ -265,7 +265,6 @@ def predictor():
 
         for index, row in ratedShuf.iterrows():
             if row['id'] in links_small and len(movies) < 1000:
-                print(row['Title'])
                 cosMov  = get_recommendations(row['Title'], cosine_sim)
 
                 for imdbID in cosMov.values:
@@ -274,19 +273,20 @@ def predictor():
 
 
         print(movies)
+        print(len(movies))
 
         if len(movies) < 1000:
             non_rated_shuffle = shuffle(non_rated)
 
-            # make sure to fill up the movies up to batches where 50% of the movies in the batch are chosen by the
+            # make sure to fill up the movies up to batches where 75% of the movies in the batch are chosen by the
             # cosine similarity function
             if len(movies) > 0:
-                threshold = len(movies)/0.5
+                threshold = len(movies)/0.75
                 splitVal = len(non_rated_shuffle)/(threshold - len(movies))
             else:
                 splitVal = len(non_rated_shuffle)/(100 - len(movies))
 
-            print(splitVal)
+
             splitArrays = np.array_split(non_rated_shuffle, splitVal)
             maxBatch = -1
 
@@ -302,15 +302,11 @@ def predictor():
 
                 count += 1
 
-        print('dfBatch before conc = ', len(dfBatch))
-
         index_movies = []
         if len(movies) > 0:
             for i in movies:
                 index_movies.append(non_rated.index[non_rated['imdb_id'] == i].values[0])
             dfBatch = pd.concat([dfBatch, non_rated.iloc[index_movies]], axis=0)
-
-        print('dfBatch after conc = ', len(dfBatch))
 
         results = DTC.predict(np.array(dfBatch.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
         dfBatch.reset_index()
