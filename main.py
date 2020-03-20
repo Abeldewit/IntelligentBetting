@@ -245,13 +245,13 @@ def predictor():
         cosine_sim = cosSim()
 
         ratedShuf = shuffle(rated)
+
         for index, row in ratedShuf.iterrows():
             if row['id'] in links_small and len(movies) < 1000:
                 print(row['Title'])
                 cosMov  = get_recommendations(row['Title'], cosine_sim)
 
                 for imdbID in cosMov.values:
-                    print("imdbid ", imdbID)
                     if imdbID in non_rated['imdb_id'].values:
                         movies.append(imdbID)
 
@@ -260,8 +260,10 @@ def predictor():
 
         if len(movies) < 1000:
             non_rated_shuffle = shuffle(non_rated)
-            splitVal = len(non_rated_shuffle)/(1000 - len(movies))
-            # print(splitVal)
+
+            # make sure to fill up the movies up to the 
+            splitVal = len(non_rated_shuffle)/(300 - len(movies))
+            print(splitVal)
             splitArrays = np.array_split(non_rated_shuffle, splitVal)
             maxBatch = -1
 
@@ -277,14 +279,15 @@ def predictor():
 
                 count += 1
 
-            # print("maxBatch = ", meanRating, "index = ", index)
+        print('dfBatch before conc = ', len(dfBatch))
 
-        #TODO index of imdb id stored in movies. to do iloc and conjugate
         index_movies = []
         if len(movies) > 0:
             for i in movies:
                 index_movies.append(non_rated.index[non_rated['imdb_id'] == i].values[0])
             dfBatch = pd.concat([dfBatch, non_rated.iloc[index_movies]], axis=0)
+
+        print('dfBatch after conc = ', len(dfBatch))
 
         results = DTC.predict(np.array(dfBatch.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
         dfBatch.reset_index()
