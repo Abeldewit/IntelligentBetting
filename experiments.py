@@ -89,6 +89,9 @@ def plot_values():
     print(totalratedlist)
     fig = plt.figure()
     ax = plt.axes()
+    ax.set_ylabel('accuracy')
+    ax.set_xlabel('rated movies')
+
 
     plt.plot(accuracylist)
 

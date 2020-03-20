@@ -4,7 +4,7 @@ import urllib3
 import random
 from flexx import flx, ui, app
 
-sliderValue = 0.5
+sliderValue = 0.3
 
 # from main import pass_user_score
 

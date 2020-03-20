@@ -281,9 +281,6 @@ def predictor():
                     if imdbID in non_rated['imdb_id'].values:
                         movies.append(imdbID)
 
-        print(movies)
-        print(len(movies))
-
         if len(movies) < 1000:
             non_rated_shuffle = shuffle(non_rated)
 
@@ -348,7 +345,6 @@ def predictor():
 def get_recommendations(title, cosine_sim):
     global dfTitles
 
-    print(dfTitles.shape)
     dfTitles = dfTitles.reset_index(drop=True)
     indices = pd.Series(dfTitles.index, index=dfTitles['Title'])
 
