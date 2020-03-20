@@ -1,10 +1,11 @@
 import pandas as pd
 import numpy as np
 from ast import literal_eval
-from modAL.utils import multi_argmax
+from modAL.utils import shuffled_argmax, multi_argmax
 from sklearn.exceptions import NotFittedError
 from gui import UserInterface
 from sklearn.utils import shuffle
+
 from sklearn.tree import DecisionTreeClassifier
 from modAL.models import ActiveLearner
 from modAL.uncertainty import uncertainty_sampling, entropy_sampling, margin_sampling
@@ -82,7 +83,8 @@ def custom_sampling(classifier, X_pool):
     except NotFittedError:
         return np.ones(shape=(X_pool.shape[0],))
     uncertainty = 1 - np.max(classwise_uncertainty, axis=1)
-    query_idx = multi_argmax(uncertainty, n_instances=1)
+    # query_idx = multi_argmax(uncertainty, n_instances=1)
+    query_idx = shuffled_argmax(uncertainty, n_instances=1)
     return query_idx, X_pool[query_idx]
 
 
