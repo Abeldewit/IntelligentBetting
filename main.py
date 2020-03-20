@@ -278,8 +278,8 @@ def predictor():
         if len(movies) < 1000:
             non_rated_shuffle = shuffle(non_rated)
 
-            # make sure to fill up the movies up to batches of 100, this to make sure there are enough movies to chose
-            # from and they are not mostly randomly classified
+            # make sure to fill up the movies up to batches where 50% of the movies in the batch are chosen by the
+            # cosine similarity function
             if len(movies) > 0:
                 threshold = len(movies)/0.5
                 splitVal = len(non_rated_shuffle)/(threshold - len(movies))
