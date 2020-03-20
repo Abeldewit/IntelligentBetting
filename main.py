@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from ast import literal_eval
-from modAL.utils import shuffled_argmax, multi_argmax
+from modAL.utils.selection import multi_argmax, shuffled_argmax
 from sklearn.exceptions import NotFittedError
 from gui import UserInterface
 from sklearn.utils import shuffle
