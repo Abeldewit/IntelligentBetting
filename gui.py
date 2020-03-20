@@ -116,7 +116,7 @@ class UserInterface:
                 r.release_conn()
             except:
                 print("Movie not found in API")
-                return None, imdb_i
+                self.score_movie(0, imdb_i)
             return movie_info, imdb_i
         else:
             print("Not enough movies in queue")
