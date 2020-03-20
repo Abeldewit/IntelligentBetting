@@ -232,6 +232,9 @@ def predictor():
         print('exploiting')
         DTC = RandomForestClassifier(n_estimators=100)
         DTC.fit(X, y)
+        feature_imp = DTC.feature_importances_
+        column_index_most = np.where(feature_imp == np.max(feature_imp))
+        # print("Most important features:", list(rated.columns[column_index_most]))
 
         # TODO make batches of random movies that have -2 as userscore, (batches of 1000)
         # we chose the one with the highest mean weightedrating
@@ -258,7 +261,7 @@ def predictor():
         if len(movies) < 1000:
             non_rated_shuffle = shuffle(non_rated)
             splitVal = len(non_rated_shuffle)/1000 - len(movies)
-            print(splitVal)
+            # print(splitVal)
             splitArrays = np.array_split(non_rated_shuffle, splitVal)
             maxBatch = -1
 
@@ -274,12 +277,19 @@ def predictor():
 
                 count += 1
 
-            print("maxBatch = ", meanRating, "index = ", index)
+            # print("maxBatch = ", meanRating, "index = ", index)
 
         #TODO index of imdb id stored in movies. to do iloc and conjugate
-        dfBatch = dfBatch.conjugate()
-        len(dfBatch)
-        breakpoint()
+        index_movies = []
+        if len(movies) > 0:
+            for i in movies:
+                index_movies.append(non_rated.index[non_rated['imdb_id'] == i])
+
+            dfBatch = pd.concat([dfBatch, non_rated.iloc[index_movies]], axis=1)
+
+
+
+
         results = DTC.predict(np.array(dfBatch.select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0)))
         dfBatch.reset_index()
 
