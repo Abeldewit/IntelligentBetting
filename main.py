@@ -278,8 +278,14 @@ def predictor():
         if len(movies) < 1000:
             non_rated_shuffle = shuffle(non_rated)
 
-            # make sure to fill up the movies up to batches of 300, this to make sure there are enough movies to chose from
-            splitVal = len(non_rated_shuffle)/(300 - len(movies))
+            # make sure to fill up the movies up to batches of 100, this to make sure there are enough movies to chose
+            # from and they are not mostly randomly classified
+            if len(movies) > 0:
+                threshold = len(movies)/0.5
+                splitVal = len(non_rated_shuffle)/(threshold - len(movies))
+            else:
+                splitVal = len(non_rated_shuffle)/(100 - len(movies))
+
             print(splitVal)
             splitArrays = np.array_split(non_rated_shuffle, splitVal)
             maxBatch = -1
