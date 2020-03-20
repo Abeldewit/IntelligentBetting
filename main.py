@@ -260,7 +260,7 @@ def predictor():
 
         if len(movies) < 1000:
             non_rated_shuffle = shuffle(non_rated)
-            splitVal = len(non_rated_shuffle)/1000 - len(movies)
+            splitVal = len(non_rated_shuffle)/(1000 - len(movies))
             # print(splitVal)
             splitArrays = np.array_split(non_rated_shuffle, splitVal)
             maxBatch = -1
