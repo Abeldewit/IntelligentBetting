@@ -1,52 +1,31 @@
+import matplotlib.pyplot as plt
+plt.style.use('seaborn-whitegrid')
+import numpy as np
+
+
 yeah_counter = 0
 neutral_counter = 0
 meh_counter = 0
 total_rated_counter = 0
 total_counter = 0
+movie_counter = 0
 
-# Holds lists of 5, yeah meh, neutral, total rated and total counter with each movie
-counter_list = []
 
-import matplotlib.pyplot as plt
-plt.style.use('seaborn-whitegrid')
-import numpy as np
+# Amount of movies it does not score (training/exploring time)
+treshold = 20
+# Amount of movies graded until graph is plotted
+test_size = 30
 
-def dummie():
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([5,2,4,3,1])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1,2,5,4,6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([5, 2, 4, 3, 1])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    counter_list.append([1, 2, 5, 4, 6])
-    plot_values()
+
+
+# Holds lists of 5, yeah, meh, neutral, total rated and total counter with each movie
+yeahlist = []
+neutrallist = []
+mehlist = []
+totalratedlist = []
+totallist = []
+
+
 
 
 def set_counters(t):
@@ -55,44 +34,56 @@ def set_counters(t):
     global meh_counter
     global total_rated_counter
     global total_counter
-    global counter_list
+    global yeahlist
+    global neutrallist
+    global mehlist
+    global totalratedlist
+    global totallist
+    global movie_counter
+    global treshold
+    global test_size
 
-    if t == 1:
-        yeah_counter += 1
-        total_rated_counter += 1
+    if t != 0:
+        movie_counter += 1
+    if movie_counter > treshold:
+        if t == 1:
+            yeah_counter += 1
+            total_rated_counter += 1
 
-    if t == 0:
-        neutral_counter += 1
+        if t == 0:
+            neutral_counter += 1
 
-    if t == -1:
-        meh_counter += 1
-        total_rated_counter += 1
+        if t == -1:
+            meh_counter += 1
+            total_rated_counter += 1
 
-    total_counter += 1
-    # print('experiment score noted : ', t)
-    tup = [yeah_counter, neutral_counter, meh_counter, total_rated_counter, total_counter]
-    print('tup', tup)
-    counter_list.append(tup)
+        total_counter += 1
+        # print('experiment score noted : ', t)
+        yeahlist.append(yeah_counter)
+        neutrallist.append(neutral_counter)
+        mehlist.append(meh_counter)
+        totalratedlist.append(total_rated_counter)
+        totallist.append(total_counter)
 
-    if total_counter%10==0:
-        plot_values()
+        if total_counter%test_size==0:
+            plot_values()
+        # plot_values()
 
 def plot_values():
 
-    global counter_list
-
-    yeahlist = np.array(counter_list)[0:,0]
-    neutrallist = np.array(counter_list)[1:,0]
-    mehlist = np.array(counter_list)[2:,0]
-    totalratedlist = np.array(counter_list)[3:, 0]
-    totallist = np.array(counter_list)[4:,0]
+    global yeahlist
+    global neutrallist
+    global mehlist
+    global totalratedlist
+    global totallist
     accuracylist = []
+
     for i in range(0, len(totalratedlist)):
-        acc = yeahlist[i]/totalratedlist[i]
+        if totalratedlist[i] == 0:
+            acc = 0
+        else:
+            acc = yeahlist[i]/totalratedlist[i]
         accuracylist.append(acc)
-
-
-    print('TOTAL COUNTER', counter_list)
 
     print(yeahlist)
     print(totalratedlist)
