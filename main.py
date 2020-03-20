@@ -61,7 +61,7 @@ def begin():
         movieIndex = random.randint(0, 100)
         tmp_movie = tmp_df.iloc[movieIndex]
         UI.add_movie(tmp_movie.imdb_id)
-    print(get_recommendations('Toy Story'))
+    print(get_recommendations('The Bodyguard'))
     return 0
 
 
