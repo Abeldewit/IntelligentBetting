@@ -12,9 +12,9 @@ movie_counter = 0
 
 
 # Amount of movies it does not score (training/exploring time)
-treshold = 20
+treshold = 10
 # Amount of movies graded until graph is plotted
-test_size = 30
+test_size = 20
 
 
 
@@ -45,6 +45,7 @@ def set_counters(t):
 
     if t != 0:
         movie_counter += 1
+        print("movieCounter = ", movie_counter)
     if movie_counter > treshold:
         if t == 1:
             yeah_counter += 1
@@ -65,7 +66,9 @@ def set_counters(t):
         totalratedlist.append(total_rated_counter)
         totallist.append(total_counter)
 
-        if total_counter%test_size==0:
+        print(total_rated_counter)
+
+        if total_rated_counter%test_size==0:
             plot_values()
         # plot_values()
 
