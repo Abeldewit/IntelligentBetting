@@ -45,7 +45,7 @@ df['user_score'] = -2
 score_writer = csv.writer(open('data/user/scored.csv', 'a'))
 UI = UserInterface()
 scoredArr = []  # array where all the imdb ids and scores are handled.
-
+cosine_sim = None
 learner = ActiveLearner(
     estimator=RandomForestClassifier(),
     query_strategy=entropy_sampling
@@ -54,6 +54,9 @@ AM = AccuracyMeasure()
 
 
 def main():
+    if is_calculatecossim:
+        global cosine_sim
+        cosine_sim = cosSim()
     begin()
     UI.run()
 
@@ -280,9 +283,6 @@ def cosSim():
     print(tfidf_matrix.shape)
     # tfidf_matrix_32 = tfidf_matrix.astype(np.float32)
     return linear_kernel(tfidf_matrix, tfidf_matrix)
-
-if is_calculatecossim:
-    cosine_sim = cosSim()
 
 def get_recommendations(title):
     global cosine_sim
