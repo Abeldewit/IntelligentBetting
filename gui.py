@@ -31,8 +31,8 @@ class Website(flx.PyWidget):
             with flx.HBox(flex=1):
                 # self.h_button = flx.Button(text='Horrible', flex=1)
                 self.m_button = flx.Button(text='Meh', flex=1)
-                self.n_button = flx.Button(text='Not\nSeen', flex=1)
-                self.g_button = flx.Button(text='Good', flex=1)
+                self.n_button = flx.Button(text='Neutral', flex=1)
+                self.g_button = flx.Button(text='Yeah!', flex=1)
                 # self.a_button = flx.Button(text='Amazing', flex=1)
             with flx.HBox(flex=0):
                 self.slider = ui.Slider(text='Exploration/Exploitation', flex=3, min=0, max=1, step=0.01, value=0.5)
@@ -48,19 +48,23 @@ class Website(flx.PyWidget):
     # Here we get the new information about the movie and display it on the webpage #
     @flx.action
     def set_movie(self, *events):
+
         information, index = UserInterface.get_movie_info(self)
-        self._mutate_imdb_index(index)
-        style = 'background: url(https://{}); ' \
-                'background-repeat: no-repeat; ' \
-                'background-position: center;' \
-                'background-color: black;' \
-                'background-size: contain' \
-            .format(information['Poster'][8:])
-        self.image.apply_style(style)
-        self.title.set_text(information['Title'])
-        self.title_w.apply_style('font-size: calc(1em + 2vw); font-weight: \'bold\'; text-align: center;')
-        self.overview_w.apply_style('font-size: calc(1em + 0.85vw); text-align: center;')
-        self.overview.set_text(information['Plot'])
+        if information is not None:
+            self._mutate_imdb_index(index)
+            style = 'background: url(https://{}); ' \
+                    'background-repeat: no-repeat; ' \
+                    'background-position: center;' \
+                    'background-color: black;' \
+                    'background-size: contain' \
+                .format(information['Poster'][8:])
+            self.image.apply_style(style)
+            self.title.set_text(information['Title'])
+            self.title_w.apply_style('font-size: calc(1em + 2vw); font-weight: \'bold\'; text-align: center;')
+            self.overview_w.apply_style('font-size: calc(1em + 0.85vw); text-align: center;')
+            self.overview.set_text(information['Plot'])
+        else:
+            print("No info passed")
 
     # These functions will process the user's reaction and display the next movie in line
     # @flx.reaction('h_button.pointer_down')
@@ -106,12 +110,16 @@ class UserInterface:
         if len(MOVIES_INDEX) > 1:
             imdb_i = MOVIES_INDEX.pop(0)
             http = urllib3.PoolManager()
-            r = http.request('GET', REQUEST + 'i=' + imdb_i)
-            movie_info = json.loads(r.data.decode('utf8'))
-            r.release_conn()
+            try:
+                r = http.request('GET', REQUEST + 'i=' + str(imdb_i))
+                movie_info = json.loads(r.data.decode('utf8'))
+                r.release_conn()
+            except:
+                print("Movie not found in API")
+                return None, imdb_i
             return movie_info, imdb_i
         else:
-            exit(1)
+            print("Not enough movies in queue")
 
     def add_movie(self, index):
         MOVIES_INDEX.append(index)

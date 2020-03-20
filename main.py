@@ -61,6 +61,7 @@ def custom_sampling(classifier, X_pool):
     return query_idx, X_pool[query_idx]
 
 
+cosine_sim = None
 learner = ActiveLearner(
     estimator=RandomForestClassifier(),
     query_strategy=custom_sampling
@@ -69,6 +70,9 @@ AM = AccuracyMeasure()
 
 
 def main():
+    if is_calculatecossim:
+        global cosine_sim
+        cosine_sim = cosSim()
     begin()
     UI.run()
 
@@ -199,6 +203,8 @@ def pass_user_score(score, imdb):
     curr_inst = np.array(df[df['imdb_id'] == imdb].select_dtypes(exclude=['object']).iloc[:, :-1].fillna(0))
     learner.teach(curr_inst.reshape(1, -1), np.array(score).reshape(1, -1)[0])
     choose_new()
+    AM.update(score)
+    AM.print_score()
 
 
 # TODO construct a predictor for the new suggestions based on a decision tree
@@ -292,12 +298,7 @@ def cosSim():
     print(tfidf_matrix.shape)
     # tfidf_matrix_32 = tfidf_matrix.astype(np.float32)
     return linear_kernel(tfidf_matrix, tfidf_matrix)
-
-
-if is_calculatecossim:
-    cosine_sim = cosSim()
-
-
+    
 def get_recommendations(title):
     global cosine_sim
     titles = dfTitles['Title']
