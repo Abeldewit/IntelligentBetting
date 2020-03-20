@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 from ast import literal_eval
+from modAL.utils import multi_argmax
+from sklearn.exceptions import NotFittedError
 from gui import UserInterface
 from sklearn.utils import shuffle
 from sklearn.tree import DecisionTreeClassifier
@@ -46,9 +48,22 @@ score_writer = csv.writer(open('data/user/scored.csv', 'a'))
 UI = UserInterface()
 scoredArr = []  # array where all the imdb ids and scores are handled.
 
+
+def custom_sampling(classifier, X_pool):
+    try:
+        classwise_uncertainty = classifier.predict_proba(X_pool)
+    except NotFittedError:
+        return np.ones(shape=(X_pool.shape[0], ))
+    # for each point, select the maximum uncertainty
+    uncertainty = 1 - np.max(classwise_uncertainty, axis=1)
+    query_idx = multi_argmax(uncertainty, n_instances=1)
+
+    return query_idx, X_pool[query_idx]
+
+
 learner = ActiveLearner(
     estimator=RandomForestClassifier(),
-    query_strategy=entropy_sampling
+    query_strategy=custom_sampling
 )
 AM = AccuracyMeasure()
 
@@ -210,7 +225,6 @@ def predictor():
         tmp_id = non_rated['imdb_id'].iloc[query_idx].values[0]
         # TODO fix hacky way to deal with delay when rating
         df.loc[df['imdb_id'] == str(tmp_id), 'user_score'] = 0
-        print(df.loc[df['imdb_id'] == str(tmp_id), 'user_score'])
         prediction = tmp_id
     else:
         print('exploiting')
@@ -279,8 +293,10 @@ def cosSim():
     # tfidf_matrix_32 = tfidf_matrix.astype(np.float32)
     return linear_kernel(tfidf_matrix, tfidf_matrix)
 
+
 if is_calculatecossim:
     cosine_sim = cosSim()
+
 
 def get_recommendations(title):
     global cosine_sim
