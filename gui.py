@@ -4,7 +4,7 @@ import urllib3
 import random
 from flexx import flx, ui, app
 
-sliderValue = 0
+sliderValue = 0.5
 
 # from main import pass_user_score
 
@@ -35,7 +35,7 @@ class Website(flx.PyWidget):
                 self.g_button = flx.Button(text='Yeah!', flex=1)
                 # self.a_button = flx.Button(text='Amazing', flex=1)
             with flx.HBox(flex=0):
-                self.slider = ui.Slider(text='Exploration/Exploitation', flex=3, min=0, max=1, step=0.01, value=0.5)
+                self.slider = ui.Slider(text='Exploration/Exploitation', flex=3, min=0, max=1, step=0.01, value=sliderValue)
                 # self.label = ui.Label(flex=1)
                 # self.label = flx.Label(flex=1)
 

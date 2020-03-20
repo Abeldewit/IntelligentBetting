@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 from ast import literal_eval
+from modAL.utils import multi_argmax
+from sklearn.exceptions import NotFittedError
 from gui import UserInterface
 from sklearn.utils import shuffle
 from sklearn.tree import DecisionTreeClassifier
@@ -15,6 +17,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 
 is_calculatecossim = True
+n_iteration = 0
+
 
 class AccuracyMeasure:
     def __init__(self):
@@ -46,9 +50,25 @@ score_writer = csv.writer(open('data/user/scored.csv', 'a'))
 UI = UserInterface()
 scoredArr = []  # array where all the imdb ids and scores are handled.
 
+def custom_sampling(classifier, X_pool):
+    popularity_colidx = 3
+    popularity_median = np.median(X_pool[:, popularity_colidx])
+    bool_arr = np.apply_along_axis(lambda row: row[popularity_colidx] > popularity_median, 1, X_pool)
+    X_pool = X_pool[bool_arr]
+    try:
+        classwise_uncertainty = classifier.predict_proba(X_pool)
+    except NotFittedError:
+        return np.ones(shape=(X_pool.shape[0],))
+    uncertainty = 1 - np.max(classwise_uncertainty, axis=1)
+    query_idx = multi_argmax(uncertainty, n_instances=1)
+    return query_idx, X_pool[query_idx]
+
+
+cosine_sim = None
+
 learner = ActiveLearner(
     estimator=RandomForestClassifier(),
-    query_strategy=entropy_sampling
+    query_strategy=custom_sampling
 )
 AM = AccuracyMeasure()
 
@@ -58,14 +78,13 @@ def main():
 
     begin()
     UI.run()
-
     return 0
 
 
 def begin():
     # get the top genres directly from the top 100
     tmp_df = pd.read_csv('data/topMovies/top100.csv')
-
+    print(df.select_dtypes(exclude='object').head())
     for index in range(5):
         movieIndex = random.randint(0, 100)
         tmp_movie = tmp_df.iloc[movieIndex]
@@ -88,7 +107,7 @@ def choose_new():
     if int(tmp_movie['user_score']) != -2:
         print('movie already rated')
         choose_new()
-    elif len(df[df['user_score'] != -2]) > 5:
+    elif len(df[df['user_score'] != -2]) >= 0:  # change to number larger than 0 if you want a 'queue' of movies
         print('using predictor to pick movies')
         imdb_id_movietoadd = predictor()
     elif int(tmp_movie['user_score']) == -2:
@@ -97,6 +116,8 @@ def choose_new():
 
     print(f'adding movie {imdb_id_movietoadd}')
     UI.add_movie(imdb_id_movietoadd)
+    global n_iteration
+    n_iteration += 1
     # from UI pass_user_score() is called which calls choose_new() again after UI.add_movie()
 
 # topX = the amount of movies we want in the genre specific database
@@ -198,14 +219,14 @@ def predictor():
     X_non_rated = non_rated.iloc[:, :-1].fillna(0).select_dtypes(exclude=['object'])
     from gui import sliderValue
     explore_thresh = sliderValue
-    if random.random() > explore_thresh:
+
+    if random.random() > explore_thresh or n_iteration == 0:
         print('exploring')
         query_idx, query_sample = learner.query(np.array(X_non_rated))
 
         tmp_id = non_rated['imdb_id'].iloc[query_idx].values[0]
         # TODO fix hacky way to deal with delay when rating
         df.loc[df['imdb_id'] == str(tmp_id), 'user_score'] = 0
-        print(df.loc[df['imdb_id'] == str(tmp_id), 'user_score'])
         prediction = tmp_id
     else:
         print('exploiting')
@@ -230,7 +251,7 @@ def predictor():
                 for imdbID in cosMov.values:
                     print("imdbid ", imdbID)
                     if imdbID in non_rated['imdb_id'].values:
-                        print("jrjejejej")
+                        movies.append(imdbID)
 
                 print(movies)
 
@@ -276,7 +297,6 @@ def predictor():
             tmp_movie = non_rated.loc[
                 non_rated['imdb_id'] == non_rated.loc[random.randint(0, non_rated.shape[0])]['imdb_id']]
             prediction = tmp_movie.imdb_id.values[0]
-    print(f'final prediction {prediction}')
     return prediction
 
 
@@ -295,6 +315,7 @@ def cosSim():
     tfidf_matrix = tf.fit_transform(dfTitles['titleOverview'])
 
     return linear_kernel(tfidf_matrix, tfidf_matrix)
+
 
 def get_recommendations(title, cosine_sim):
     global dfTitles
